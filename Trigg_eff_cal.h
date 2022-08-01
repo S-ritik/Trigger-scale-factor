@@ -3328,10 +3328,16 @@ public :
   static const int npartmx = 25;
   static const int ntrigobjmx = 25;
 
-  float weight;
-  float leptonsf_weight;
-  float leptonsf_weight_stat = 1.0;
-  float leptonsf_weight_syst = 1.0;
+  const static int nchannel = 3;
+  float lep1pdg, lep2pdg, ntriggerobjs,nbjets,trig_ee,trig_emu,trig_mumu, invmll,trig_met;
+  float delpt_el[ntrigobjmx], delpt_mu[ntrigobjmx], delN_el[ntrigobjmx], delN_mu[ntrigobjmx];
+  float weight[nchannel];
+  float elleptonsf_weight;
+  float elleptonsf_weight_stat = 1.0;
+  float elleptonsf_weight_syst = 1.0;
+  float muleptonsf_weight;
+  float muleptonsf_weight_stat = 1.0;
+  float muleptonsf_weight_syst = 1.0;
   float weight_puwup;
   float weight_puwdown;
   float weight_btagwup;
@@ -3421,6 +3427,8 @@ public :
   Float_t         pfjetAK8DeepTag_TvsQCD[njetmxAK8];
   Float_t         pfjetAK8DeepTag_WvsQCD[njetmxAK8];
   Float_t         pfjetAK8DeepTag_ZvsQCD[njetmxAK8];
+  Float_t         pfjetAK8PNet_TvsQCD[njetmxAK8];
+  Float_t         pfjetAK8PNet_WvsQCD[njetmxAK8];
   Float_t         pfjetAK8CHF[njetmxAK8];
   Float_t         pfjetAK8NHF[njetmxAK8];
   Float_t         pfjetAK8CEMF[njetmxAK8];
@@ -3592,6 +3600,7 @@ public :
   Int_t           genpartstatus[npartmx];
   Int_t           genpartpdg[npartmx];
   Int_t           genpartmompdg[npartmx];
+  Int_t           genpartmomstatus[npartmx];
   Int_t           genpartgrmompdg[npartmx];
   Int_t           genpartdaugno[npartmx];
   Bool_t          genpartfromhard[npartmx];
@@ -3700,7 +3709,13 @@ public :
   Bool_t          elmvaid_Fallv2WP80[njetmx];
   Bool_t          elmvaid_noIso[njetmx];
   Bool_t          elmvaid_Fallv2WP80_noIso[njetmx];
-
+  Bool_t          elcutid_veto[njetmx];
+  Bool_t          elcutid_loose[njetmx];
+  Bool_t          elcutid_med[njetmx];
+  Bool_t          elcutid_tight[njetmx];
+  Bool_t          elmvaid_wpLoose[njetmx];
+  Bool_t          elmvaid_noIso_wpLoose[njetmx];
+  Bool_t          elsupcl_e[njetmx];
   Float_t         elhovere[njetmx];
   Float_t         elchi[njetmx];
   Int_t           elndf[njetmx];
@@ -3911,6 +3926,8 @@ public :
   TBranch        *b_pfjetAK8DeepTag_TvsQCD;   //!
   TBranch        *b_pfjetAK8DeepTag_WvsQCD;   //!
   TBranch        *b_pfjetAK8DeepTag_ZvsQCD;   //!
+  TBranch        *b_pfjetAK8PNet_TvsQCD;   //!
+  TBranch        *b_pfjetAK8PNet_WvsQCD;   //!
 
   TBranch        *b_pfjetAK8CHF;   //!
   TBranch        *b_pfjetAK8NHF;   //!
@@ -4046,6 +4063,7 @@ public :
   TBranch        *b_genpartstatus;   //!
   TBranch        *b_genpartpdg;   //!
   TBranch        *b_genpartmompdg;   //!
+  TBranch        *b_genpartmomstatus;   //!
   TBranch        *b_genpartgrmompdg;   //!
   TBranch        *b_genpartdaugno;   //!
   TBranch        *b_genpartfromhard;   //!
@@ -4173,7 +4191,13 @@ public :
   TBranch        *b_elmvaid_Fallv2WP80;  //!
   TBranch        *b_elmvaid_noIso;   //!
   TBranch        *b_elmvaid_Fallv2WP80_noIso; //!
-
+  TBranch        *b_elcutid_veto;   //!
+  TBranch        *b_elcutid_loose;   //!
+  TBranch        *b_elcutid_med;   //!
+  TBranch        *b_elcutid_tight;   //!
+  TBranch        *b_elmvaid_wpLoose;   //!
+  TBranch        *b_elmvaid_noIso_wpLoose;   //!
+  TBranch        *b_elsupcl_e;   //!
   TBranch        *b_elhovere;   //!
   TBranch        *b_elchi;   //!
   TBranch        *b_elndf;   //!
@@ -4257,10 +4281,22 @@ public :
 
   const char* ptprvar_name[ntypes] = {"ptpreta_ak8", "ptpreta_ak4", "ptpreta_bjet", "ptpreta_el", "ptpreta_muon"};
 
-  static const int npr_angle=6;
+  static const int npr_angle=4;
   TH2D* hist_prptangle[npr_angle]={0};
-  const char* pr_angle[npr_angle] = {"ee_elec_vs_trig", "ee_muon_vs_trig","emu_elec_vs_trig", "emu_muon_vs_trig","mumu_elec_vs_trig", "mumu_muon_vs_trig"};
+  const char* pr_angle[npr_angle] = {"ee_elec_vs_trig","emu_elec_vs_trig", "emu_muon_vs_trig","mumu_muon_vs_trig"};
 
+   static const int npr_angle_N=6;
+   TH2D* hist_prptangle_N[npr_angle_N]={0};
+   const char* pr_angle_N[npr_angle_N] = {"ee_elec_vs_trig", "ee_muon_vs_trig","emu_elec_vs_trig", "emu_muon_vs_trig","mumu_elec_vs_trig", "mumu_muon_vs_trig"};
+   static const int nhist_in_N=6;
+  TH1D *hist_init_N[nhist_in_N];
+    const char *initnames_N[nhist_in_N] = {"ee_matchN_l1","ee_matchN_l2","emu_matchN_l1","emu_matchN_l2","mumu_matchN_l1","mumu_matchN_l2"};
+
+  const char *titlenames_N[nhist_in_N] = {"trigger matching for #mu in ee channel","trigger matching for el in ee chanel","trigger matching for #mu in e#mu channel","trigger matching for el in e#mu channel","trigger matching for #mu in #mu#mu channel","trigger matching for el in #mu#mu channel"};
+
+  double ini_low_N[nhist_in_N] = {0.0,0.0,0.0,0.0,0.0,0.0};
+  double ini_up_N[nhist_in_N] = {1.0,1.0,1.0,1.0,1.0,1.0};
+  int ini_nbins_N[nhist_in_N] = {60,60,60,60,60,60};
 
   static const int noptbins = 32;
   double ptbins[noptbins+1] = {300, 390, 468,
@@ -4299,7 +4335,7 @@ public :
     
   //TH1D *hist_new_var[15];
   //GMA define nhist_in and use that
-  static const int nhist_in=6;
+  static const int nhist_in=4;
   TH1D *hist_init[nhist_in];
 
   static const int nobshist = 47;
@@ -4366,17 +4402,17 @@ public :
   double treevar_up[ntreevarhist] = {1000,8,3.15,250,250,400,3.15,200,200,3.15,3.15,3.15,3.15,2,0.8,0.3,1000,1000,10.5,5.5,5.5,4000,7.5,500,300,200,1,1,7,1,1,1,1,3.15,5,1,5,5,1,1,1,0.25,0.5,1,1,5,1};
   int treevar_nbins[ntreevarhist] = {30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,11,6,4,30,8,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30};
 
-  const char *initnames[nhist_in] = {"ee_matchN_l1","ee_matchN_l2","emu_matchN_l1","emu_matchN_l2","mumu_matchN_l1","mumu_matchN_l2"};
+  const char *initnames[nhist_in] = {"ee_deltaR_eltrigobj","emu_deltaR_eltrigobj","emu_deltaR_mutrigobj","mumu_deltaR_mutrigobj"};
 
-  const char *titlenames[nhist_in] = {"trigger matching for #mu in ee channel","trigger matching for el in ee chanel","trigger matching for #mu in e#mu channel","trigger matching for el in e#mu channel","trigger matching for #mu in #mu#mu channel","trigger matching for el in #mu#mu channel"};
+  const char *titlenames[nhist_in] = {"#DeltaR (el, el trigger object) in ee channel","#DeltaR (el, el trigger object) in emu channel","#DeltaR (mu, mu trigger object) in emu channel","#DeltaR (mu, mu trigger object) in mu channel"};
 
   //double new_var_low[9] = {0.0,0.0,-5.0,0.0,0.0,0.0,-2.5,-5.0,-5.0};//,0.0,0.0,0.0,0.0,0.0,0.0,0.0,300.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
   //double new_var_up[9] = {500.0,2.0,5.0,1000.0,1000.0,500.0,2.5,5.0,5.0};//1000,3.15,3.15,3.15,500,500,3000,500,3.15,3.15,3.15,3.15,500,500,5.};
   //int new_var_nbins[9] = {25,25,50,50,50,25,25,50,50};//30,25,25,25,25,25,30,25,25,25,25,25,25,25,25};
 
-  double ini_low[nhist_in] = {0.0,0.0,0.0,0.0,0.0,0.0};
-  double ini_up[nhist_in] = {1.0,1.0,1.0,1.0,1.0,1.0};
-  int ini_nbins[nhist_in] = {60,60,60,60,60,60};
+  double ini_low[nhist_in] = {0.0,0.0,0.0,0.0};
+  double ini_up[nhist_in] = {1.0,1.0,1.0,1.0};
+  int ini_nbins[nhist_in] = {60,60,60,60};
 
   TH1D *hist_npv;
   TH1D *hist_npv_nopuwt;
@@ -4417,13 +4453,13 @@ public :
   TH1D *hist_count_top,*hist_delptbypt[3];
   TH2D *hist_2d_pt_genlepvsb1, *hist_2d_pt_genlepvsb2, *hist_2d_pt_genlepvsb3, *hist_2d_pt_genlepvsb4, *hist_2d_pt_genlepvsb5, *hist_2d_pt_gentopvsgentop;
 
-  const static int nchannel = 3;
   string channel[nchannel] = {"ee","emu","mumu"};
-  TH2D *hist_ortho_trig_2d[3][nchannel],*hist_trig_eff_2d[3][nchannel],*hist_ortho_trig_extra_2d[3][nchannel],*hist_trig_eff_extra_2d[3][nchannel];
-  TH1D *hist_ortho_trig[5][nchannel],*hist_trig_eff[5][nchannel],*hist_ortho_trig_extra[4][nchannel],*hist_trig_eff_extra[4][nchannel];
+  TH2D *hist_ortho_trig_2d[4][nchannel],*hist_trig_eff_2d[4][nchannel],*hist_trig_eff_2d_unmatched[4][nchannel], *hist_ortho_trig_extra_2d[3][nchannel],*hist_trig_eff_extra_2d[3][nchannel];
+  TH1D *hist_ortho_trig[5][nchannel],*hist_trig_eff[5][nchannel],*hist_trig_eff_unmatched[5][nchannel],*hist_ortho_trig_extra[4][nchannel],*hist_trig_eff_extra[4][nchannel];
 	
-  const static int nbins_ptlep=4;
-  double ptbins_lep[nbins_ptlep+1] = {10,30,100,200,1000};
+  const static int nbins_ptlep=10;
+//  double ptbins_lep[nbins_ptlep+1] = {10,20,30,40,50,70,90,120,150,225,300};
+    double ptbins_lep[nbins_ptlep+1] = {10,20,30,50,70,90,120,150,300,400,500};
 
   float in_pfjetAK8NHadF;
   float in_pfjetAK8neunhadfrac;
@@ -4491,8 +4527,8 @@ public :
 
   TString testdir = "/home/deroy/t3store3/CMSSW_10_5_0/src/BDTResponse_validator/Analysis/newvar_sv/Signal/";
   //TString dir = "/home/deroy/t3store3/Muon_MuEl/";
-  TString dir = "/home/rsaxena/t3store3/Muon_MuEl/";
-  //TString dir = "/home/ritik/Desktop/code2/";
+  //TString dir = "/home/rsaxena/t3store3/Muon_MuEl/";
+  TString dir = "/home/ritik/Desktop/code2/";
   //TString weightfile1 = testdir + TString("TMVAClassification_BDTG_elIDvarv3.weights.xml");
 
   //TString weightfile1 = dir + TString("TMVAClassification_BDTG_elIDvar_Jan2021Corr_TTbarUL18.weights.xml");
@@ -4509,6 +4545,15 @@ public :
   TH2F *h_SF_altSignalModel_el_reco = (TH2F*)electron_reco_sf_file->Get("altSignalModel");
   TH2F *h_SF_altMCEff_el_reco = (TH2F*)electron_reco_sf_file->Get("altMCEff");
   TH2F *h_SF_altTagSelection_el_reco = (TH2F*)electron_reco_sf_file->Get("altTagSelection");
+
+    TFile *electron_loose_sf_file = new TFile(dir + TString("2018_ElectronLoose.root"));
+  TH2F *h_SF_el_loose = (TH2F*)electron_reco_sf_file->Get("EGamma_SF2D");
+ /* TH2F *h_SF_statData_el_loose = (TH2F*)electron_reco_sf_file->Get("statData");
+  TH2F *h_SF_statMC_el_loose = (TH2F*)electron_reco_sf_file->Get("statMC");
+  TH2F *h_SF_altBkgModel_el_loose = (TH2F*)electron_reco_sf_file->Get("altBkgModel");
+  TH2F *h_SF_altSignalModel_el_loose = (TH2F*)electron_reco_sf_file->Get("altSignalModel");
+  TH2F *h_SF_altMCEff_el_loose = (TH2F*)electron_reco_sf_file->Get("altMCEff");
+  TH2F *h_SF_altTagSelection_el_loose = (TH2F*)electron_reco_sf_file->Get("altTagSelection");*/
 
   TFile *electron_tightid_sf_file = new TFile(dir + TString("egammaEffi.txt_Ele_wp90noiso_EGM2D.root"));
   TH2F *h_SF_el_tight = (TH2F*)electron_tightid_sf_file->Get("EGamma_SF2D");
@@ -4572,7 +4617,8 @@ public :
 				bool &trig_threshold_pass,
 				bool &trig_matching_pass,
 				vector<TH1D*> &hist_init,
-				vector<TH2D*> &hist_2d
+				vector<TH2D*> &hist_2d,
+				float weight
 				);
 
   virtual Bool_t  Process(Long64_t entry);
@@ -4685,10 +4731,11 @@ void Trigg_eff_cal::Init(TTree *tree)
   fChain->SetBranchAddress("pfjetAK8mass", pfjetAK8mass, &b_pfjetAK8mass);
   fChain->SetBranchAddress("pfjetAK8JEC", pfjetAK8JEC, &b_pfjetAK8JEC);
   fChain->SetBranchAddress("pfjetAK8btag_DeepCSV", pfjetAK8btag_DeepCSV, &b_pfjetAK8btag_DeepCSV);
-
-  fChain->SetBranchAddress("pfjetAK8DeepTag_TvsQCD", pfjetAK8DeepTag_TvsQCD, &b_pfjetAK8DeepTag_TvsQCD);
-  fChain->SetBranchAddress("pfjetAK8DeepTag_WvsQCD", pfjetAK8DeepTag_WvsQCD, &b_pfjetAK8DeepTag_WvsQCD);
-  fChain->SetBranchAddress("pfjetAK8DeepTag_ZvsQCD", pfjetAK8DeepTag_ZvsQCD, &b_pfjetAK8DeepTag_ZvsQCD);
+  fChain->SetBranchAddress("pfjetAK8DeepTag_DAK8_TvsQCD", pfjetAK8DeepTag_TvsQCD, &b_pfjetAK8DeepTag_TvsQCD);
+  fChain->SetBranchAddress("pfjetAK8DeepTag_DAK8_WvsQCD", pfjetAK8DeepTag_WvsQCD, &b_pfjetAK8DeepTag_WvsQCD);
+  fChain->SetBranchAddress("pfjetAK8DeepTag_DAK8_ZvsQCD", pfjetAK8DeepTag_ZvsQCD, &b_pfjetAK8DeepTag_ZvsQCD);
+  fChain->SetBranchAddress("pfjetAK8DeepTag_PNet_TvsQCD", pfjetAK8PNet_TvsQCD, &b_pfjetAK8PNet_TvsQCD);
+  fChain->SetBranchAddress("pfjetAK8DeepTag_PNet_WvsQCD", pfjetAK8PNet_WvsQCD, &b_pfjetAK8PNet_WvsQCD);
   fChain->SetBranchAddress("pfjetAK8CHF", pfjetAK8CHF, &b_pfjetAK8CHF);
   fChain->SetBranchAddress("pfjetAK8NHF", pfjetAK8NHF, &b_pfjetAK8NHF);
   fChain->SetBranchAddress("pfjetAK8CEMF", pfjetAK8CEMF, &b_pfjetAK8CEMF);
@@ -4767,8 +4814,6 @@ void Trigg_eff_cal::Init(TTree *tree)
   fChain->SetBranchAddress("pfjetAK8jesdn_SinglePionHCAL",pfjetAK8jesdn_SinglePionHCAL, &b_pfjetAK8jesdn_SinglePionHCAL);
   fChain->SetBranchAddress("pfjetAK8jesdn_TimePtEta",pfjetAK8jesdn_TimePtEta, &b_pfjetAK8jesdn_TimePtEta);
   fChain->SetBranchAddress("pfjetAK8jesdn_Total",pfjetAK8jesdn_Total, &b_pfjetAK8jesdn_Total);
-
-
 
   fChain->SetBranchAddress("pfjetAK8chrad", pfjetAK8chrad, &b_pfjetAK8chrad);
   fChain->SetBranchAddress("pfjetAK8pTD", pfjetAK8pTD, &b_pfjetAK8pTD);
@@ -4928,6 +4973,7 @@ void Trigg_eff_cal::Init(TTree *tree)
   fChain->SetBranchAddress("genpartstatus", genpartstatus, &b_genpartstatus);
   fChain->SetBranchAddress("genpartpdg", genpartpdg, &b_genpartpdg);
   fChain->SetBranchAddress("genpartmompdg", genpartmompdg, &b_genpartmompdg);
+  fChain->SetBranchAddress("genpartmomstatus", genpartmomstatus, &b_genpartmomstatus);
   fChain->SetBranchAddress("genpartgrmompdg", genpartgrmompdg, &b_genpartgrmompdg);
   fChain->SetBranchAddress("genpartdaugno", genpartdaugno, &b_genpartdaugno);
   fChain->SetBranchAddress("genpartfromhard", genpartfromhard, &b_genpartfromhard);
@@ -5012,8 +5058,15 @@ void Trigg_eff_cal::Init(TTree *tree)
   fChain->SetBranchAddress("eleta", eleta, &b_eleta);
   fChain->SetBranchAddress("elphi", elphi, &b_elphi);
   fChain->SetBranchAddress("elp", elp, &b_elp);
+  fChain->SetBranchAddress("elsupcl_e", elsupcl_e, &b_elsupcl_e);
   fChain->SetBranchAddress("ele", ele, &b_ele);
   fChain->SetBranchAddress("elcharge", elcharge, &b_elcharge);
+  fChain->SetBranchAddress("elcutid_veto", elcutid_veto, &b_elcutid_veto);
+  fChain->SetBranchAddress("elcutid_loose", elcutid_loose, &b_elcutid_loose);
+  fChain->SetBranchAddress("elcutid_med", elcutid_med, &b_elcutid_med);
+  fChain->SetBranchAddress("elcutid_tight", elcutid_tight, &b_elcutid_tight);
+  fChain->SetBranchAddress("elmvaid_wpLoose", elmvaid_wpLoose, &b_elmvaid_wpLoose);
+  fChain->SetBranchAddress("elmvaid_noIso_wpLoose", elmvaid_noIso_wpLoose, &b_elmvaid_noIso_wpLoose);
   fChain->SetBranchAddress("elmvaid", elmvaid, &b_elmvaid);
   fChain->SetBranchAddress("elmvaid_Fallv2WP80", elmvaid_Fallv2WP80, &b_elmvaid_Fallv2WP80);
   fChain->SetBranchAddress("elmvaid_noIso", elmvaid_noIso, &b_elmvaid_noIso);

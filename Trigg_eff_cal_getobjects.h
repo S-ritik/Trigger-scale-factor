@@ -3,40 +3,48 @@
 
 float* Trigg_eff_cal::Muon_SF(float pt, float eta, string id){
 
-    char name[100];
-    float sf =0, sf_stat=0, sf_sys=0;
+	char name[100];
+	static float sfvalues[7] = {-100,-100,-100,-100,-100,-100,-100};
 
-    if(id == "Tight")
-    {
-	int eta_bin_id = (h_SF_mu_tight->GetXaxis()->FindBin(eta)>(h_SF_mu_tight->GetNbinsX())) ? h_SF_mu_tight->GetNbinsX() : h_SF_mu_tight->GetXaxis()->FindBin(eta) ;
-	int pt_bin_id = (h_SF_mu_tight->GetYaxis()->FindBin(pt)>(h_SF_mu_tight->GetNbinsY())) ? h_SF_mu_tight->GetNbinsY() : h_SF_mu_tight->GetYaxis()->FindBin(pt) ;
+    if(id == "reco"){
+	int eta_bin_id = (h_SF_el_reco->GetXaxis()->FindBin(eta)>(h_SF_el_reco->GetNbinsX())) ? h_SF_el_reco->GetNbinsX() : h_SF_el_reco->GetXaxis()->FindBin(eta) ;
+	int pt_bin_id = (h_SF_el_reco->GetYaxis()->FindBin(pt)>(h_SF_el_reco->GetNbinsY())) ? h_SF_el_reco->GetNbinsY() : h_SF_el_reco->GetYaxis()->FindBin(pt) ;
 
-      if(eta_bin_id>0 && pt_bin_id>0 ){
-        sf = h_SF_mu_tight->GetBinContent(eta_bin_id,pt_bin_id);
-		sf_stat = h_SF_stat_mu_tight->GetBinContent(eta_bin_id,pt_bin_id);
-		sf_sys = h_SF_sys_mu_tight->GetBinContent(eta_bin_id,pt_bin_id);
-      }else{
-        sf = 1;
-		sf_stat = sf_sys = 1;
-      }}
-      else if(id == "reco")
-      {
-        int eta_bin_id = (h_SF_mu_reco->GetXaxis()->FindBin(eta)>(h_SF_mu_reco->GetNbinsX())) ? h_SF_mu_reco->GetNbinsX() : h_SF_mu_reco->GetXaxis()->FindBin(eta) ;
-        int pt_bin_id = (h_SF_mu_reco->GetYaxis()->FindBin(pt)>(h_SF_mu_reco->GetNbinsY())) ? h_SF_mu_reco->GetNbinsY() : h_SF_mu_reco->GetYaxis()->FindBin(pt) ;
+	float sf, sf_stat, sf_sys;
+
+	if(eta_bin_id>0 && pt_bin_id>0 ){
+		sfvalues[0] = h_SF_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+		sfvalues[1] = h_SF_statData_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+		sfvalues[2] = h_SF_statMC_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+		sfvalues[3] = h_SF_altBkgModel_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+		sfvalues[4] = h_SF_altSignalModel_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+		sfvalues[5] = h_SF_altMCEff_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+		sfvalues[6] = h_SF_altTagSelection_el_reco->GetBinContent(eta_bin_id,pt_bin_id);
+	}
+	else{
+		sfvalues[0] = 1;
+		sfvalues[1] = sfvalues[2] = sfvalues[3] = sfvalues[4] = sfvalues[5] = sfvalues[6] = 0;
+		}
+    }
+    else if(id == "Tight") {
+        int eta_bin_id = (h_SF_el_tight->GetXaxis()->FindBin(eta)>(h_SF_el_tight->GetNbinsX())) ? h_SF_el_tight->GetNbinsX() : h_SF_el_tight->GetXaxis()->FindBin(eta) ;
+        int pt_bin_id = (h_SF_el_tight->GetYaxis()->FindBin(pt)>(h_SF_el_tight->GetNbinsY())) ? h_SF_el_tight->GetNbinsY() : h_SF_el_tight->GetYaxis()->FindBin(pt) ;
+
+        float sf, sf_stat, sf_sys;
+
         if(eta_bin_id>0 && pt_bin_id>0 ){
-          sf = h_SF_mu_reco->GetBinContent(eta_bin_id,pt_bin_id);
-          sf_stat = sf + h_SF_mu_reco->GetBinError(eta_bin_id,pt_bin_id);
-          sf_sys = 1;
-        }else{
-          sf = 1;
-          sf_stat = sf_sys = 1;
-        }
+          sfvalues[0] = h_SF_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[1] = h_SF_statData_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[2] = h_SF_statMC_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[3] = h_SF_altBkgModel_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[4] = h_SF_altSignalModel_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[5] = h_SF_altMCEff_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[6] = h_SF_altTagSelection_el_tight->GetBinContent(eta_bin_id,pt_bin_id);
       }
-	static float sfvalues[3];
-	sfvalues[0] = sf;
-	sfvalues[1] = sf_stat;
-	sfvalues[2] = sf_sys;
-
+      else{
+          sfvalues[0] = 1;
+          sfvalues[1] = sfvalues[2] = sfvalues[3] = sfvalues[4] = sfvalues[5] = sfvalues[6] = 0;
+          }}
 	return sfvalues;
 }
 
@@ -84,7 +92,26 @@ float* Trigg_eff_cal::Electron_SF(float pt, float eta, string id){
           sfvalues[0] = 1;
           sfvalues[1] = sfvalues[2] = sfvalues[3] = sfvalues[4] = sfvalues[5] = sfvalues[6] = 0;
           }}
+     else if(id == "loose") {
+        int eta_bin_id = (h_SF_el_loose->GetXaxis()->FindBin(eta)>(h_SF_el_loose->GetNbinsX())) ? h_SF_el_loose->GetNbinsX() : h_SF_el_loose->GetXaxis()->FindBin(eta) ;
+        int pt_bin_id = (h_SF_el_loose->GetYaxis()->FindBin(pt)>(h_SF_el_loose->GetNbinsY())) ? h_SF_el_loose->GetNbinsY() : h_SF_el_loose->GetYaxis()->FindBin(pt) ;
 
+        float sf, sf_stat, sf_sys;
+
+        if(eta_bin_id>0 && pt_bin_id>0 ){
+          sfvalues[0] = h_SF_el_loose->GetBinContent(eta_bin_id,pt_bin_id);
+          sfvalues[1] = 0;
+          sfvalues[2] = 0;
+          sfvalues[3] = 0;
+          sfvalues[4] = 0;
+          sfvalues[5] = 0;
+          sfvalues[6] = 0;
+      }
+      else{
+          sfvalues[0] = 1;
+          sfvalues[1] = sfvalues[2] = sfvalues[3] = sfvalues[4] = sfvalues[5] = sfvalues[6] = 0;
+          }
+    }
 	return sfvalues;
 }
 
@@ -173,12 +200,13 @@ void Trigg_eff_cal::getelectrons(std::vector<Electron> &velectrons, float ptcut=
 
     // if(!((fabs(elsupcl_eta[ie])<1.4442 && fabs(eldxytrk[ie])<dxy_cut && fabs(eldztrk[ie])<dz_cut)||(fabs(elsupcl_eta[ie])>1.5660 && fabs(elsupcl_eta[ie])<2.5 && fabs(eldxytrk[ie])<(2*dxy_cut) && fabs(eldztrk[ie])<(2*dz_cut)))) continue;
 
-    //  if(!((fabs(elsupcl_eta[ie])<=1.479 && fabs(elsigmaieta[ie])< 0.0126 && fabs(eldeltaetacltrkcalo[ie]) <  0.00463 && abs(elphiin[ie]) < 0.148 &&  elhitsmiss[ie]<= 2 && ((1.0 - eleoverp[ie]) / ele[ie]) < 0.209) || (fabs(elsupcl_eta[ie])>1.479 && fabs(elsigmaieta[ie])< 0.0457 && fabs(eldeltaetacltrkcalo[ie]) <  0.00814 && abs(elphiin[ie]) < 0.19 &&  elhitsmiss[ie]<= 3 && ((1.0 - eleoverp[ie]) / ele[ie]) < 0.132)) continue;
+    //if(!elcutid_loose[ie]) continue;
 
     Electron velectron;
 
     //velectron.vetoid_tight = (fabs(elsupcl_eta[ie])<=1.479 && elsigmaieta[ie]< 0.0126 && fabs(eldeltaetacltrkcalo[ie]) <  0.00463 && fabs(elphiin[ie]) < 0.148 &&  elhitsmiss[ie]<= 2 && ((1.0 - eleoverp[ie]) / ele[ie]) < 0.209 && fabs(eldxytrk[ie])<dxy_cut && fabs(eldztrk[ie])<dz_cut) || (fabs(elsupcl_eta[ie])>1.479 && elsigmaieta[ie]< 0.0457 && fabs(eldeltaetacltrkcalo[ie]) <  0.00814 && abs(elphiin[ie]) < 0.19 &&  elhitsmiss[ie]<= 3 && ((1.0 - eleoverp[ie]) / ele[ie]) < 0.132 && fabs(eldxytrk[ie])<(2*dxy_cut) && fabs(eldztrk[ie])<(2*dz_cut));
 
+//    if(!((fabs(elsupcl_eta[ie])<=1.479 && elhcaloverecal[ie]<=0.15*ele[ie] && elsigmaieta[ie]<= 0.014) || (fabs(elsupcl_eta[ie])>=1.479 && fabs(elsupcl_eta[ie])<=2.65 && elhcaloverecal[ie]<=0.1*ele[ie] && elsigmaieta[ie]<= 0.035))) continue;//trigger id cut
     velectron.vetoid_tight = elmvaid_noIso[ie];
     velectron.pt = elpt[ie];
     velectron.eta = eleta[ie];
@@ -188,6 +216,12 @@ void Trigg_eff_cal::getelectrons(std::vector<Electron> &velectrons, float ptcut=
     velectron.Fallv2WP80 = elmvaid_Fallv2WP80[ie];
     velectron.id_noIso = elmvaid_noIso[ie];
     velectron.Fallv2WP80_noIso = elmvaid_Fallv2WP80_noIso[ie];
+    velectron.mvaWPloose = elmvaid_wpLoose[ie];
+    velectron.mvaWPloose_noIso = elmvaid_noIso_wpLoose[ie];
+    velectron.vetocutid = elcutid_veto[ie];
+    velectron.loosecutid = elcutid_loose[ie];
+    velectron.medcutid = elcutid_med[ie];
+    velectron.tightcutid = elcutid_tight[ie];
     velectron.p = elp[ie];
     velectron.dxy = eldxytrk[ie];
     velectron.dz = eldztrk[ie];
@@ -976,7 +1010,7 @@ void Trigg_eff_cal::ReadTagger(std::vector<AK8Jet> &LJets, std::vector<Lepton> v
   }//for (int ij=0; ij<min(LJets.size(),2); ij++)
 }
 
-void Trigg_eff_cal::Match_trigger(vector<Single_Trigger> vsinglelep_trig,vector<Double_Trigger> vdoublelep_trig, vector<std::pair<int,TLorentzVector>> TrigRefObj,Lepton lepcand_1, Lepton lepcand_2, vector<AK4Jet> Jets, bool &trig_threshold_pass, bool &trig_matching_pass, vector<TH1D*> &hist_init,vector<TH2D*> &hist2d)
+void Trigg_eff_cal::Match_trigger(vector<Single_Trigger> vsinglelep_trig,vector<Double_Trigger> vdoublelep_trig, vector<std::pair<int,TLorentzVector>> TrigRefObj,Lepton lepcand_1, Lepton lepcand_2, vector<AK4Jet> Jets, bool &trig_threshold_pass, bool &trig_matching_pass, vector<TH1D*> &hist_init,vector<TH2D*> &hist2d, float weight)
 {
 
   if(vdoublelep_trig.size()<1 && vsinglelep_trig.size()<1) {
@@ -1096,6 +1130,7 @@ void Trigg_eff_cal::Match_trigger(vector<Single_Trigger> vsinglelep_trig,vector<
     if (vdoublelep_trig.size()>0 && double_trig_pass && lep1_match && lep2_match)  { trig_matching_pass = true; }
     else if (vsinglelep_trig.size()>0 && single_trig_pass && (lep1_match||lep2_match) && vsinglelep_trig[fired_single_trig].single_other_pt_cuts>0 && jet_match) { trig_matching_pass = true; }
     else if (vsinglelep_trig.size()>0 && single_trig_pass && (lep1_match||lep2_match) && vsinglelep_trig[fired_single_trig].single_other_pt_cuts<0) { trig_matching_pass = true; }
+
 
   }
 

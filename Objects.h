@@ -217,6 +217,12 @@ class Electron {
   bool Fallv2WP80;
   bool id_noIso;
   bool Fallv2WP80_noIso;
+  bool mvaWPloose;
+  bool mvaWPloose_noIso;
+  bool loosecutid;
+  bool vetocutid;
+  bool medcutid;
+  bool tightcutid;
   float p;
   float y;
   float dxy;
