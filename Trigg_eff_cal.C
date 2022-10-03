@@ -1,5 +1,14 @@
-#include "Trigg_eff_cal_getobjects.h"
+/*
+  weight = event_weight; 
+  should be in the same ntuple, event by event we are going to read it.
+    
+  Order lepton according to the matching of leading Ak8 jets. 
+  Lepton tagging
   
+*/
+
+#include "Trigg_eff_cal_getobjects.h"
+
 #include <TH2.h>
 #include <TStyle.h>
 #include <TVector3.h>
@@ -15,6 +24,7 @@
 #include <sstream>
 #include <string>
 #include <TProofServ.h>
+
 
 void Trigg_eff_cal::Begin(TTree * /*tree*/)
 {
@@ -33,7 +43,7 @@ void Trigg_eff_cal::SlaveBegin(TTree * /*tree*/)
   //The tree argument is deprecated (on PROOF 0 is passed).
   
   TString option = GetOption();
-
+  
   OutFile = new TProofOutputFile("test_output.root");
   
   fileOut = OutFile->OpenFile("RECREATE");
@@ -41,53 +51,156 @@ void Trigg_eff_cal::SlaveBegin(TTree * /*tree*/)
     {
       Warning("SlaveBegin", "problems opening file: %s/%s",OutFile->GetDir(), OutFile->GetFileName());
     }
-
+   
   isMC = true;
   isTT = true;
-  isST = false;
+  isTTDilep = false;
   isDIB = false;
-  isWJ = false;
   isDY = false;
   isQCD = false;
+  isST = false;
   isTTX = false;
-
+  isWJ = false;
+  
+  //GMA
+  //Tout = new TTree("leptop","leptop");
+  //Tout->Branch("weight",&weight,"weight/F");
+  
   Tnewvar = new TTree("newvars","newvars");
+  Tnewvar->Branch("irun", &irun, "irun/I");
+  Tnewvar->Branch("ilumi", &ilumi, "ilumi/I");
   Tnewvar->Branch("ievt", &ievt, "ievt/i");
-  Tnewvar->Branch("weight",&weight,"weight/F");
-  Tnewvar->Branch("lep1pt",&lep1pt,"lep1pt/F");
-  Tnewvar->Branch("lep2pt",&lep2pt,"lep2pt/F");
-  Tnewvar->Branch("lep1pdg",&lep1pdg,"lep1pdg/F");
-  Tnewvar->Branch("lep2pdg",&lep2pdg,"lep2pdg/F");
-  Tnewvar->Branch("ntriggerobjs",&ntriggerobjs,"ntriggerobjs/F");
-  Tnewvar->Branch("delpt_el",delpt_el,"delpt_el[ntrigobjmx]/F");
-  Tnewvar->Branch("delpt_mu",delpt_mu,"delpt_mu[ntrigobjmx]/F");
-  Tnewvar->Branch("delN_el",delN_el,"delN_el[ntrigobjmx]/F");
-  Tnewvar->Branch("delN_mu",delN_mu,"delN_mu[ntrigobjmx]/F");
+
+  Tnewvar->Branch("nprimi", &nprimi, "nprimi/i");
+
+  Tnewvar->Branch("tt_decay_mode",&tt_decay_mode,"tt_decay_mode/F"); // get decay product info; only relevent for ttbar channel and can give unusal values for other samples
+  
+  // Add experimental weight along with their variations for systematics uncertainity
+  Tnewvar->Branch("weight_toppt",&weight_toppt,"weight_toppt/F");
+  Tnewvar->Branch("weight_pileup",&weight_pileup,"weight_pileup/F");
+  Tnewvar->Branch("weight_pileup_up",&weight_pileup_up,"weight_pileup_up/F");
+  Tnewvar->Branch("weight_pileup_down",&weight_pileup_down,"weight_pileup_down/F");
+  Tnewvar->Branch("weight_prefiring",&weight_prefiring,"weight_prefiring/F");
+  Tnewvar->Branch("weight_prefiring_up",&weight_prefiring_up,"weight_prefiring_up/F");
+  Tnewvar->Branch("weight_prefiring_down",&weight_prefiring_down,"weight_prefiring_down/F");
+  Tnewvar->Branch("weight_btag",&weight_btag,"weight_btag/F");
+  Tnewvar->Branch("weight_btag_up",&weight_btag_up,"weight_btag_up/F");
+  Tnewvar->Branch("weight_btag_down",&weight_btag_down,"weight_btag_down/F");
+  
+  Tnewvar->Branch("total_weight_ee",&total_weight_ee,"total_weight_ee/F");
+  Tnewvar->Branch("weight_lepeff_ee",&weight_lepeff_ee,"weight_lepeff_ee/F");
+  Tnewvar->Branch("weight_lepeff_stat_ee",&weight_lepeff_stat_ee,"weight_lepeff_stat_ee/F");
+  Tnewvar->Branch("weight_lepeff_syst_ee",&weight_lepeff_syst_ee,"weight_lepeff_syst_ee/F");
+
+  Tnewvar->Branch("total_weight_emu",&total_weight_emu,"total_weight_emu/F");
+  Tnewvar->Branch("weight_lepeff_emu",&weight_lepeff_emu,"weight_lepeff_emu/F");
+  Tnewvar->Branch("weight_lepeff_stat_emu",&weight_lepeff_stat_emu,"weight_lepeff_stat_emu/F");
+  Tnewvar->Branch("weight_lepeff_syst_emu",&weight_lepeff_syst_emu,"weight_lepeff_syst_emu/F");
+
+  Tnewvar->Branch("total_weight_mumu",&total_weight_mumu,"total_weight_mumu/F");
+  Tnewvar->Branch("weight_lepeff_mumu",&weight_lepeff_mumu,"weight_lepeff_mumu/F");
+  Tnewvar->Branch("weight_lepeff_stat_mumu",&weight_lepeff_stat_mumu,"weight_lepeff_stat_mumu/F");
+  Tnewvar->Branch("weight_lepeff_syst_mumu",&weight_lepeff_syst_mumu,"weight_lepeff_syst_mumu/F");
+
+  // Add theory weight along with their variations for theortical systematics uncertainity
+  /*  Tnewvar->Branch("gen_weight",&gen_weight,"gen_weight/F");
+      Tnewvar->Branch("LHE_weight",&LHE_weight, "LHE_weight/D");
+      Tnewvar->Branch("nLHEScaleWeights",&nLHEScaleWeights, "nLHEScaleWeights/I");
+      Tnewvar->Branch("LHEScaleWeights",LHEScaleWeights,"LHEScaleWeights[nLHEScaleWeights]/F");
+      Tnewvar->Branch("nLHEPDFWeights",&nLHEPDFWeights, "nLHEPDFWeights/I");
+      Tnewvar->Branch("LHEPDFWeights",LHEPDFWeights,"LHEPDFWeights[nLHEPDFWeights]/F");
+      Tnewvar->Branch("nLHEAlpsWeights",&nLHEAlpsWeights, "nLHEAlpsWeights/I");
+      Tnewvar->Branch("LHEAlpsWeights",LHEAlpsWeights,"LHEAlpsWeights[nLHEAlpsWeights]/F");
+      Tnewvar->Branch("nLHEPSWeights",&nLHEPSWeights, "nLHEPSWeights/I");
+      Tnewvar->Branch("LHEPSWeights",LHEPSWeights,"LHEPSWeights[nLHEPSWeights]/F");
+  */
+  // Add all event selection variables
+  Tnewvar->Branch("n_electrons",&n_electrons,"n_electrons/F");
+  Tnewvar->Branch("n_muons",&n_muons,"n_muons/F");
+  Tnewvar->Branch("nvetomuons",&nvetomuons,"nvetomuons/F");
+  Tnewvar->Branch("nvetoelectrons",&nvetoelectrons,"nvetoelectrons/F");
+  Tnewvar->Branch("nak8jets",&nak8jets,"nak8jets/F");
+  Tnewvar->Branch("ak8jet1_pt",&ak8jet1_pt,"ak8jet1_pt/F");
+  Tnewvar->Branch("ak8jet2_pt",&ak8jet2_pt,"ak8jet2_pt/F");
+  Tnewvar->Branch("ak8jet1_sdmass",&ak8jet1_sdmass,"ak8jet1_sdmass/F");
+  Tnewvar->Branch("ak8jet2_sdmass",&ak8jet2_sdmass,"ak8jet2_sdmass/F");
+  Tnewvar->Branch("ak8jet1_toptagscore",&ak8jet1_toptagscore,"ak8jet1_toptagscore/F");
+  Tnewvar->Branch("ak8jet2_toptagscore",&ak8jet2_toptagscore,"ak8jet2_toptagscore/F");
+  Tnewvar->Branch("lep1_pdg",&lep1_pdg,"lep1_pdg/F");
+  Tnewvar->Branch("lep2_pdg",&lep2_pdg,"lep2_pdg/F");
+  Tnewvar->Branch("isttbar_ee",&isttbar_ee,"isttbar_ee/F");
+  Tnewvar->Branch("isttbar_emu",&isttbar_emu,"isttbar_emu/F");
+  Tnewvar->Branch("isttbar_mumu",&isttbar_mumu,"isttbar_mumu/F");
+  Tnewvar->Branch("deltaRlep1",&deltaRlep1,"deltaRlep1/F");
+  Tnewvar->Branch("deltaRlep2",&deltaRlep2,"deltaRlep2/F");
+  Tnewvar->Branch("lepmatchwithak8",&lepmatchwithak8,"lepmatchwithak8/F");
+  
   Tnewvar->Branch("nbjets",&nbjets,"nbjets/F");
+  Tnewvar->Branch("chs_met",&chs_met,"chs_met/F");
+  Tnewvar->Branch("chs_met_up",&chs_met_up,"chs_met_up/F");
+  Tnewvar->Branch("chs_met_down",&chs_met_down,"chs_met_down/F");
+
+  // Add other variables for including in event selection
+  Tnewvar->Branch("deltaphi",&deltaphi,"deltaphi/F");
+  Tnewvar->Branch("dirglthrmin",&dirglthrmin,"dirglthrmin/F");
+  Tnewvar->Branch("dirgltrthr",&dirgltrthr,"dirgltrthr/F");
+  Tnewvar->Branch("EventHT",&EventHT,"EventHT/F");
   Tnewvar->Branch("invmll",&invmll,"invmll/F");
-  Tnewvar->Branch("trig_ee",&trig_ee,"trig_ee/F");
-  Tnewvar->Branch("trig_emu",&trig_emu,"trig_emu/F");
-  Tnewvar->Branch("trig_mumu",&trig_mumu,"trig_mumu/F");
-  Tnewvar->Branch("trig_met",&trig_met,"trig_met/F");
-  Tnewvar->Branch("response_ak81",&response_ak81,"response_ak81/F");
-  Tnewvar->Branch("response_ak82",&response_ak82,"response_ak82/F");
-    //  Tnewvar->Branch("",&,"/F");
+  
+  // Add varibles for Data vs MC comparison
+  Tnewvar->Branch("ak8jet1_eta",&ak8jet1_eta,"ak8jet1_eta/F");
+  Tnewvar->Branch("ak8jet1_mass",&ak8jet1_mass,"ak8jet1_mass/F");
+  Tnewvar->Branch("ak8jet1_phi",&ak8jet1_phi,"ak8jet1_phi/F");
+  Tnewvar->Branch("ak8jet2_eta",&ak8jet2_eta,"ak8jet2_eta/F");
+  Tnewvar->Branch("ak8jet2_phi",&ak8jet2_phi,"ak8jet2_phi/F");
+  Tnewvar->Branch("ak8jet2_mass",&ak8jet2_mass,"ak8jet2_mass/F");
+  Tnewvar->Branch("nak4jets",&nak4jets,"nak4jets/F");
+  Tnewvar->Branch("lep1_pt",&lep1_pt,"lep1_pt/F");
+  Tnewvar->Branch("lep1_eta",&lep1_eta,"lep1_eta/F");
+  Tnewvar->Branch("lep1_phi",&lep1_phi,"lep1_phi/F");
+  Tnewvar->Branch("lep2_pt",&lep2_pt,"lep2_pt/F");
+  Tnewvar->Branch("lep2_eta",&lep2_eta,"lep2_eta/F");
+  Tnewvar->Branch("lep2_phi",&lep2_phi,"lep2_phi/F");
+
+  // Add variables for division of MC samples
+  Tnewvar->Branch("jet_trigger_unprescale",&jet_trigger_unprescale,"jet_trigger_unprescale/F");
+  Tnewvar->Branch("jet_trigger_prescale",&jet_trigger_prescale,"jet_trigger_prescale/F");
+  Tnewvar->Branch("met_trigger_unprescale",&met_trigger_unprescale,"met_trigger_unprescale/F");
+  Tnewvar->Branch("met_trigger_prescale",&met_trigger_prescale,"met_trigger_prescale/F");
+  Tnewvar->Branch("ee_trigger",&ee_trigger,"ee_trigger/F");
+  Tnewvar->Branch("emu_trigger",&emu_trigger,"emu_trigger/F");
+  Tnewvar->Branch("mumu_trigger",&mumu_trigger,"mumu_trigger/F");
+  Tnewvar->Branch("trig_matching_pass_ee",&trig_matching_pass_ee,"trig_matching_pass_ee/F");
+  Tnewvar->Branch("trig_matching_pass_emu",&trig_matching_pass_emu,"trig_matching_pass_emu/F");
+  Tnewvar->Branch("trig_matching_pass_mumu",&trig_matching_pass_mumu,"trig_matching_pass_mumu/F");
+
+  // Prescale factors
+  Tnewvar->Branch("psfactor_hlt_AK8PFHT800_TrimMass50",&psfactor_hlt_AK8PFHT800_TrimMass50,"psfactor_hlt_AK8PFHT800_TrimMass50/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFHT900_TrimMass50",&psfactor_hlt_AK8PFHT900_TrimMass50,"psfactor_hlt_AK8PFHT900_TrimMass50/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFJet400_TrimMass30",&psfactor_hlt_AK8PFJet400_TrimMass30,"psfactor_hlt_AK8PFJet400_TrimMass30/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFJet420_TrimMass30",&psfactor_hlt_AK8PFJet420_TrimMass30,"psfactor_hlt_AK8PFJet420_TrimMass30/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFJet550",&psfactor_hlt_AK8PFJet550,"psfactor_hlt_AK8PFJet550/F");
+  Tnewvar->Branch("psfactor_hlt_CaloJet500_NoJetID",&psfactor_hlt_CaloJet500_NoJetID,"psfactor_hlt_CaloJet500_NoJetID/F");
+  Tnewvar->Branch("psfactor_hlt_PFHT1050",&psfactor_hlt_PFHT1050,"psfactor_hlt_PFHT1050/F");
+  Tnewvar->Branch("psfactor_hlt_PFJet500",&psfactor_hlt_PFJet500,"psfactor_hlt_PFJet500/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFJet320",&psfactor_hlt_AK8PFJet320,"psfactor_hlt_AK8PFJet320/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV",&psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV,"psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV/F");
+  Tnewvar->Branch("psfactor_hlt_AK8PFJet360_TrimMass30",&psfactor_hlt_AK8PFJet360_TrimMass30,"psfactor_hlt_AK8PFJet360_TrimMass30/F");
+  Tnewvar->Branch("psfactor_hlt_DiPFJetAve400",&psfactor_hlt_DiPFJetAve400,"psfactor_hlt_DiPFJetAve400/F");
+  Tnewvar->Branch("psfactor_hlt_PFJet400",&psfactor_hlt_PFJet400,"psfactor_hlt_PFJet400/F");
+  Tnewvar->Branch("psfactor_hlt_PFJet320",&psfactor_hlt_PFJet320,"psfactor_hlt_PFJet320/F");
+  Tnewvar->Branch("psfactor_hlt_PFJet200",&psfactor_hlt_PFJet200,"psfactor_hlt_PFJet200/F");
+  Tnewvar->Branch("psfactor_hlt_CaloMET100_HBHECleaned",&psfactor_hlt_CaloMET100_HBHECleaned,"psfactor_hlt_CaloMET100_HBHECleaned/F");
+  Tnewvar->Branch("psfactor_hlt_CaloMET250_HBHECleaned",&psfactor_hlt_CaloMET250_HBHECleaned,"psfactor_hlt_CaloMET250_HBHECleaned/F");
+  Tnewvar->Branch("psfactor_hlt_CaloMET90_HBHECleaned",&psfactor_hlt_CaloMET90_HBHECleaned,"psfactor_hlt_CaloMET90_HBHECleaned/F");
+  Tnewvar->Branch("psfactor_hlt_CaloMET70_HBHECleaned",&psfactor_hlt_CaloMET70_HBHECleaned,"psfactor_hlt_CaloMET70_HBHECleaned/F");
+  Tnewvar->Branch("psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight",&psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight,"psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight/F");
+  Tnewvar->Branch("psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight",&psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight,"psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight/F");
+  Tnewvar->Branch("psfactor_hlt_CaloMET80_HBHECleaned",&psfactor_hlt_CaloMET80_HBHECleaned,"psfactor_hlt_CaloMET80_HBHECleaned/F");
   
   //Tnewvar->Branch("",&,"/F");
-  /* for(int init=0; init<nhist_in; init++){
-    char namein[1000]; //nameinup[1000], nameindn[1000];
-    char titlein[1000];
-    
-    sprintf(namein,"hist_%s",initnames[init]);
-    sprintf(titlein,"%s",titlenames[init]);
-    hist_init[init] = new TH1D(namein,titlein,ini_nbins[init],ini_low[init],ini_up[init]);
-    hist_init[init]->Sumw2();
-  }
-
-  for (int ij=0; ij<npr_angle; ij++) 
-    hist_prptangle[ij] = new TH2D(pr_angle[ij], pr_angle[ij], 6, 10.0, 510.0, 7, 0.0, 2.1);
-*/
-    for(int init=0; init<nhist_in_N; init++){
+  
+  for(int init=0; init<nhist_in_N; init++){
     char namein[1000]; //nameinup[1000], nameindn[1000];
     char titlein[1000];
     
@@ -104,52 +217,18 @@ void Trigg_eff_cal::SlaveBegin(TTree * /*tree*/)
     hist_count[ich] = new TH1D((channel[ich]+"Counter").c_str(),(channel[ich]+"Counter").c_str(),10,-0.5,9.5);
     hist_count[ich]->Sumw2();  
   }
-  
-  for(int ich=0; ich< nchannel; ich++){   /// nchannel declared in .h file
-
-    hist_ortho_trig_2d[0][ich] = new TH2D((channel[ich]+"_hist_orthotrig_lepptvsleppt").c_str(),(channel[ich]+"_hist_orthotrig_lepptvsleppt").c_str(),nbins_ptlep,ptbins_lep,nbins_ptlep,ptbins_lep);
-    hist_ortho_trig_2d[1][ich] = new TH2D((channel[ich]+"_hist_orthotrig_lepetavslepeta").c_str(),(channel[ich]+"_hist_orthotrig_lepetavslepeta").c_str(),5,-2.5,2.5,5,-2.5,2.5);
-    hist_ortho_trig_2d[2][ich] = new TH2D((channel[ich]+"_hist_orthotrig_lepphivslepphi").c_str(),(channel[ich]+"_hist_orthotrig_lepphivslepphi").c_str(),5,-1*TMath::Pi(),TMath::Pi(),5,-1*TMath::Pi(),TMath::Pi());
-    hist_ortho_trig_2d[3][ich] = new TH2D((channel[ich]+"_hist_orthotrig_lepptvsleppt_withoutweight").c_str(),(channel[ich]+"_hist_orthotrig_lepptvslepptt_withoutweight").c_str(),nbins_ptlep,ptbins_lep,nbins_ptlep,ptbins_lep);
-    hist_ortho_trig[0][ich] = new TH1D((channel[ich]+"_hist_orthotrig_leadleppt").c_str(),(channel[ich]+"_hist_orthotrig_leadleppt").c_str(),5,0,1000);
-    hist_ortho_trig[1][ich] = new TH1D((channel[ich]+"_hist_orthotrig_dilepmass").c_str(),(channel[ich]+"_hist_orthotrig_dilepmass").c_str(),8,50,130);
-    hist_ortho_trig[2][ich] = new TH1D((channel[ich]+"_hist_orthotrig_leadlepphi").c_str(),(channel[ich]+"_hist_orthotrig_leadlepphi").c_str(),5,-1*TMath::Pi(),TMath::Pi());
-    hist_ortho_trig[3][ich] = new TH1D((channel[ich]+"_hist_orthotrig_leadlepeta").c_str(),(channel[ich]+"_hist_orthotrig_leadlepeta").c_str(),5,-2.5,2.5);
-    hist_ortho_trig[4][ich] = new TH1D((channel[ich]+"_hist_orthotrig_njets").c_str(),(channel[ich]+"_hist_orthotrig_njets").c_str(),11,-0.5,10.5);
-
-    hist_trig_eff_2d[0][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepptvsleppt").c_str(),(channel[ich]+"_hist_trig_eff_lepptvsleppt").c_str(),nbins_ptlep,ptbins_lep,nbins_ptlep,ptbins_lep);
-    hist_trig_eff_2d[1][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepetavslepeta").c_str(),(channel[ich]+"_hist_trig_eff_lepetavslepeta").c_str(),5,-2.5,2.5,5,-2.5,2.5);
-    hist_trig_eff_2d[2][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepphivslepphi").c_str(),(channel[ich]+"_hist_trig_eff_lepphivslepphi").c_str(),5,-1*TMath::Pi(),TMath::Pi(),5,-1*TMath::Pi(),TMath::Pi());
-    hist_trig_eff_2d[3][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepptvsleppt_withoutweight").c_str(),(channel[ich]+"_hist_trig_eff_lepptvsleppt_withoutweight").c_str(),nbins_ptlep,ptbins_lep,nbins_ptlep,ptbins_lep);
-    hist_trig_eff[0][ich] = new TH1D((channel[ich]+"_hist_trig_eff_leadleppt").c_str(),(channel[ich]+"_hist_trig_eff_leadleppt").c_str(),5,0,1000);
-    hist_trig_eff[1][ich] = new TH1D((channel[ich]+"_hist_trig_eff_dilepmass").c_str(),(channel[ich]+"_hist_trig_eff_dilepmass").c_str(),8,50,130);
-    hist_trig_eff[2][ich] = new TH1D((channel[ich]+"_hist_trig_eff_leadlepphi").c_str(),(channel[ich]+"_hist_trig_eff_leadlepphi").c_str(),5,-1*TMath::Pi(),TMath::Pi());
-    hist_trig_eff[3][ich] = new TH1D((channel[ich]+"_hist_trig_eff_leadlepeta").c_str(),(channel[ich]+"_hist_trig_eff_leadlepeta").c_str(),5,-2.5,2.5);
-    hist_trig_eff[4][ich] = new TH1D((channel[ich]+"_hist_trig_eff_njets").c_str(),(channel[ich]+"_hist_trig_eff_njets").c_str(),11,-0.5,10.5);
-
-    hist_trig_eff_2d_unmatched[0][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepptvsleppt_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_lepptvsleppt_unmatched").c_str(),nbins_ptlep,ptbins_lep,nbins_ptlep,ptbins_lep);
-    hist_trig_eff_2d_unmatched[1][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepetavslepeta_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_lepetavslepeta_unmatched").c_str(),5,-2.5,2.5,5,-2.5,2.5);
-    hist_trig_eff_2d_unmatched[2][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepphivslepphi_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_lepphivslepphi_unmatched").c_str(),5,-1*TMath::Pi(),TMath::Pi(),5,-1*TMath::Pi(),TMath::Pi());
-    hist_trig_eff_2d_unmatched[3][ich] = new TH2D((channel[ich]+"_hist_trig_eff_lepptvsleppt_withoutweight_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_lepptvsleppt_withoutweight_unmatched").c_str(),nbins_ptlep,ptbins_lep,nbins_ptlep,ptbins_lep);
-    hist_trig_eff_unmatched[0][ich] = new TH1D((channel[ich]+"_hist_trig_eff_leadleppt_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_leadleppt_unmatched").c_str(),5,0,1000);
-    hist_trig_eff_unmatched[1][ich] = new TH1D((channel[ich]+"_hist_trig_eff_dilepmass_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_dilepmass_unmatched").c_str(),8,50,130);
-    hist_trig_eff_unmatched[2][ich] = new TH1D((channel[ich]+"_hist_trig_eff_leadlepphi_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_leadlepphi_unmatched").c_str(),5,-1*TMath::Pi(),TMath::Pi());
-    hist_trig_eff_unmatched[3][ich] = new TH1D((channel[ich]+"_hist_trig_eff_leadlepeta_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_leadlepeta_unmatched").c_str(),5,-2.5,2.5);
-    hist_trig_eff_unmatched[4][ich] = new TH1D((channel[ich]+"_hist_trig_eff_njets_unmatched").c_str(),(channel[ich]+"_hist_trig_eff_njets_unmatched").c_str(),11,-0.5,10.5);
-      
-  }
 
   calib_deepflav = BTagCalibration("DeepJet", (dir + "DeepJet_106XUL18SF_WPonly_V1p1.csv").Data());
+  reader_deepflav_tight = BTagCalibrationReader(BTagEntry::OP_TIGHT, "central", {"up", "down"}); 
+  reader_deepflav_tight.load(calib_deepflav, BTagEntry::FLAV_B, "comb");
+  reader_deepflav_tight.load(calib_deepflav, BTagEntry::FLAV_C, "comb");
+  reader_deepflav_tight.load(calib_deepflav, BTagEntry::FLAV_UDSG, "incl");
+
   reader_deepflav_med = BTagCalibrationReader(BTagEntry::OP_MEDIUM, "central", {"up", "down"}); 
   reader_deepflav_med.load(calib_deepflav, BTagEntry::FLAV_B, "comb");
   reader_deepflav_med.load(calib_deepflav, BTagEntry::FLAV_C, "comb");
   reader_deepflav_med.load(calib_deepflav, BTagEntry::FLAV_UDSG, "incl");
-
-  reader_deepflav_loose = BTagCalibrationReader(BTagEntry::OP_LOOSE, "central", {"up", "down"}); 
-  reader_deepflav_loose.load(calib_deepflav, BTagEntry::FLAV_B, "comb");
-  reader_deepflav_loose.load(calib_deepflav, BTagEntry::FLAV_C, "comb");
-  reader_deepflav_loose.load(calib_deepflav, BTagEntry::FLAV_UDSG, "incl");
-
+  
   reader1 = new TMVA::Reader( "BDTG_Re" );
   reader1->AddVariable("selpfjetAK8NHadF", &in_pfjetAK8NHadF);
   reader1->AddVariable("selpfjetAK8neunhadfrac", &in_pfjetAK8neunhadfrac);
@@ -213,7 +292,6 @@ void Trigg_eff_cal::SlaveBegin(TTree * /*tree*/)
   reader4->AddVariable("selpfjetAK8muinsubIfarbyI0", &in_pfjetAK8muinsubIfarbyI0);
   reader4->AddVariable("selpfjetAK8muinsubInearbyI0", &in_pfjetAK8muinsubInearbyI0);
   reader4->BookMVA("BDTG method", weightfile4);
-  
 }
 
 Bool_t Trigg_eff_cal::Process(Long64_t entry)
@@ -221,7 +299,7 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
   // The Process() function is called for each entry in the tree (or possibly
   // keyed object in the case of PROOF) to be processed. The entry argument
   // specifies which entry in the currently loaded tree is to be processed.
-  // It can be passed to either Anal_Leptop_PROOF::GetEntry() or TBranch::GetEntry()
+  // It can be passed to either Trigg_eff_cal::GetEntry() or TBranch::GetEntry()
   // to read either all or the required parts of the data. When processing
   // keyed objects with PROOF, the object is already loaded and is available
   // via the fObject pointer.
@@ -236,97 +314,140 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
   //
   // The return value is currently not used.
 
-  int icheck = GetEntry(entry);
+
+  /// Set default values to tree variables
+  weight_toppt = weight_pileup = weight_pileup_up = weight_pileup_down = weight_prefiring = weight_prefiring_up = weight_prefiring_down = weight_btag = weight_btag_up = weight_btag_down = total_weight_ee = weight_lepeff_ee = weight_lepeff_stat_ee = weight_lepeff_syst_ee = total_weight_mumu = weight_lepeff_mumu = weight_lepeff_stat_mumu = weight_lepeff_syst_mumu = total_weight_emu = weight_lepeff_emu = weight_lepeff_stat_emu = weight_lepeff_syst_emu = gen_weight = 1;
+  
+  nak8jets = nbjets = chs_met = chs_met_up = chs_met_down = deltaphi = EventHT = nak4jets = n_electrons = n_muons = nvetomuons = nvetoelectrons = nak8jets = ak8jet1_pt = ak8jet2_pt = ak8jet1_sdmass = ak8jet1_toptagscore = ak8jet2_toptagscore = lep1_pdg = lep1_pdg = lep2_pdg = isttbar_ee = isttbar_emu = isttbar_mumu = deltaRlep1 = deltaRlep2 = lepmatchwithak8 = ak8jet1_eta = ak8jet1_mass = ak8jet1_phi = ak8jet2_phi = ak8jet2_mass = lep1_pt = lep1_eta = lep1_phi = lep2_pt = lep2_eta = lep2_phi = jet_trigger_unprescale = jet_trigger_prescale = met_trigger_unprescale = met_trigger_prescale = ee_trigger = emu_trigger = mumu_trigger = trig_matching_pass_ee = trig_matching_pass_emu = trig_matching_pass_mumu = -100;
+  dirglthrmin = dirgltrthr = -100.;
+  
+  int icheck = GetEntry(entry);  // Get entries from input trees
+  float weight_ch[nchannel] = {1.0,1.0,1.0};  // Define weights for each channel
+
   if(isMC){
     for(int ich =0; ich < nchannel; ich++)
-      weight[ich] = event_weight;
+      weight_ch[ich] = event_weight;
+    gen_weight = event_weight;  
   }else{
-        for(int ich =0; ich < nchannel; ich++)
-	  weight[ich] = 1;
+    for(int ich =0; ich < nchannel; ich++)
+      weight_ch[ich] = 1;
+    gen_weight = 1;
   }
-  TString str;
-  // str = TString::Format("check for evt %d ",ievt);          
-  //if(gProofServ) gProofServ->SendAsynMessage(str);
   
+  TString str;
+  bool debug_mode = false;
+  str = TString::Format("check START for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);
+    
+  // Get all gen level info for MC only
   vector<GenParton> genpartons;
   vector<GenParton> LHEtops;
   vector<TopQuark> gentops;
   vector<LHEparticle> lheparticles;
   int cntt = 0; int nel=0; int nmu=0;
   tau_decay_mode = 0;
-  toppt_wt = 1;
-  
- if(isMC && npu_vert_true>=0 && npu_vert_true<100){
-    float *puweights = Get_PU_Weights(npu_vert_true);
-    puWeight = puweights[0];
-    puWeightup = puweights[1];
-    puWeightdown = puweights[2];
-    for(int ich =0; ich < nchannel; ich++)
-      {
-	weight[ich] *= puWeight;
-	weight[ich] *= prefiringweight;
-      }
- }
- else if(isMC)
-   {
-     weight[0] = 0;
-     str = TString::Format("npu_vert_true = %d weight = %f nprimi = %d is out of range for evt %d  ; ttree = %d",npu_vert_true,weight[0],nprimi,ievt,icheck);          
-     if(gProofServ) gProofServ->SendAsynMessage(str);
-     return kFALSE;
-   }
- 
+  weight_toppt = 1;
+    
   if( isMC ){
     getPartons(genpartons);
     getLHEParticles(lheparticles);
-    if(isTT) {
+    // Get GEN-level top quarks
+    tt_decay_mode = -1;
+    if(isTT || isST || isTTX) {
       getGENTops(gentops,genpartons); // after shower (get top quarks from its daughters) --> will tell details about the signature of ttbar events at GEN level
       getLHETops(LHEtops,genpartons); // before shower (get original top quarks which have decayed) --> will be usedto derive top pt reweighting
-
+      tt_decay_mode = 0;
+      for(int ip=0; ip <(int)lheparticles.size();ip++)
+	{
+	  if(abs(lheparticles[ip].pdgId) == 11)
+	    { tt_decay_mode +=10; cntt++; nel++;}
+	  else if(abs(lheparticles[ip].pdgId) == 13)
+	    { tt_decay_mode +=100; cntt++; nmu++;}
+	  else if(abs(lheparticles[ip].pdgId) == 15)
+	    { tt_decay_mode +=1000; cntt++;}
+	}
+      tt_decay_mode += 2 - cntt; // +1 for quark, +10 for e, +100 for muon, +1000 for tau
+      
       // top pt reweighting //
-      if(LHEtops.size()==2){
-	toppt_wt = SF_TOP(0.0615,0.0005,TMath::Min(float(500),float(LHEtops[0].pt)),TMath::Min(float(500),float(LHEtops[1].pt)));
-	for(int ich =0; ich < nchannel; ich++)
-	  weight[ich] *= toppt_wt;
+      if(LHEtops.size()==2 && isTT){
+	weight_toppt = SF_TOP(0.0615,0.0005,TMath::Min(float(500),float(LHEtops[0].pt)),TMath::Min(float(500),float(LHEtops[1].pt)));
+	weight_ch[0] *= weight_toppt;
+	weight_ch[1] *= weight_toppt;
+	weight_ch[2] *= weight_toppt;
       }
     }
   }    
-    
-  bool itrig_ortho_trig = false;
- 
-  itrig_ortho_trig = hlt_PFMET250 || hlt_PFMET300 || hlt_PFMET200 || hlt_PFMET200_TypeOne;
+
+  str = TString::Format("checkpost 1 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);
+  
+  // Pile up rewighing  and prefire weight//
+  if(isMC && npu_vert_true>=0 && npu_vert_true<100){
+    float *puweights = Get_PU_Weights(npu_vert_true);
+    weight_pileup = puweights[0];
+    weight_pileup_up = puweights[1];
+    weight_pileup_down = puweights[2];
+    weight_prefiring = prefiringweight;
+    weight_prefiring_up = prefiringweightup;
+    weight_prefiring_down = prefiringweightdown;
+    weight_ch[0] *= weight_pileup;
+    weight_ch[0] *= weight_prefiring;
+    weight_ch[1] *= weight_pileup;
+    weight_ch[1] *= weight_prefiring;
+    weight_ch[2] *= weight_pileup;
+    weight_ch[2] *= weight_prefiring;
+  }
+  else if(isMC)
+    {
+      str = TString::Format("npu_vert_true = %d weight = %f nprimi = %d is out of range for evt %d  ;",npu_vert_true,weight_ch[0],nprimi,ievt);          
+      if(gProofServ) gProofServ->SendAsynMessage(str);
+      return kFALSE;
+    }
+  
+  str = TString::Format("checkpost 2 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
 
   vector <Electron> velectrons;
-  getelectrons(velectrons, 10 ,absetacut);   
-  
+  getelectrons(velectrons,10,absetacut);    // electron_pt_cut & absetacut defined in Proof.h
+    
+  //Here you get muons with your criteria
   vector <Muon> vmuons;
-  getmuons(vmuons,10 ,absetacut);
+  getmuons(vmuons,10,absetacut);        
 
+  //Make lepton collection from electrons & muons (using only common variables)
   vector <Lepton> vleptons;
   getLeptons(vleptons,vmuons,velectrons,10);
-
+    
+  //Here you get AK4 jets with your criteria                                     
+      vector <AK4Jet> Jets;
+  getAK4jets(Jets,AK4jet_pt_cut,absetacut,isMC);     
+  
+  //Here you get AK8 jets with your criteria 
+      vector <AK8Jet> LJets;
+  getAK8jets(LJets,300,absetacut,isMC);
+  
   Lepton lepcand1,lepcand2;
     
   if((int)vleptons.size() > 1)
     {
-      lep1pt = vleptons[0].pt;
-      lep2pt = vleptons[1].pt;
-      lep1pdg = vleptons[0].pdgId;
-      lep2pdg = vleptons[1].pdgId;
+      lep1_pt = vleptons[0].pt;
+      lep2_pt = vleptons[1].pt;
+      lep1_pdg = vleptons[0].pdgId;
+      lep2_pdg = vleptons[1].pdgId;
+      lep1_eta = vleptons[0].eta;
+      lep2_eta = vleptons[1].eta;
+      lep1_phi = vleptons[0].phi;
+      lep2_phi = vleptons[1].phi;
       lepcand1= vleptons[0];
       lepcand2 = vleptons[1]; 
     }
   
   for(int ich =0; ich < nchannel; ich++)
-    hist_count[ich]->Fill(0.0,weight[ich]);
-
-  if(!itrig_ortho_trig || (int)vleptons.size()<2) return kFALSE;             
-
-  for(int ich =0; ich < nchannel; ich++)
-    hist_count[ich]->Fill(1.0,weight[ich]);
+    hist_count[ich]->Fill(0.0,weight_ch[ich]);
   
- vector <AK8Jet> LJets;
-  getAK8jets(LJets,300,absetacut,isMC);
-
+  for(int ich =0; ich < nchannel; ich++)
+    if((int)vleptons.size()>1 && (int)LJets.size()>1) hist_count[ich]->Fill(1.0,weight_ch[ich]);
+  
   if ((int)LJets.size()>0 && (int)vleptons.size() > 1) {
     for(int ijet=0;ijet<min(2,int(LJets.size()));ijet++){
       //Match lepton with AK8 jets
@@ -339,57 +460,70 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
     }
   }
     
-      /*    // Matched highest b tag AK4 jets  with AK8 jets //                                         
-      LJets[ijet].match_AK4_index = get_nearest_AK4(Jets,LJets[ijet].p4);
-      if(LJets[ijet].match_AK4_index>=0 && LJets[ijet].match_AK4_index<int(Jets.size())){
+  /*    // Matched highest b tag AK4 jets  with AK8 jets //                                         
+	LJets[ijet].match_AK4_index = get_nearest_AK4(Jets,LJets[ijet].p4);
+	if(LJets[ijet].match_AK4_index>=0 && LJets[ijet].match_AK4_index<int(Jets.size())){
         LJets[ijet].matchAK4deepb = Jets[LJets[ijet].match_AK4_index].btag_DeepFlav;	
-      }
-      if (LJets[ijet].match_AK4_index >=0 && ijet!=LJets[ijet].match_AK4_index && ijet<int(Jets.size())) {
+	}
+	if (LJets[ijet].match_AK4_index >=0 && ijet!=LJets[ijet].match_AK4_index && ijet<int(Jets.size())) {
 	AK4Jet tmpjet = Jets[LJets[ijet].match_AK4_index];
 	Jets.erase(Jets.begin() + LJets[ijet].match_AK4_index);
 	Jets.insert(Jets.begin() + ijet, tmpjet);
-      }
-    }
-  }*/
+	}
+	}
+	}*/
+
+  nvetoelectrons=0;
+  nvetomuons=0;
   
-  elleptonsf_weight = elleptonsf_weight_stat = elleptonsf_weight = 1;
-  muleptonsf_weight = muleptonsf_weight_stat = muleptonsf_weight = 1;
+  for(int ie=0; ie<(int)velectrons.size(); ie++) {
+    if(velectrons[ie].mvaWPloose_noIso)
+      nvetoelectrons++;
+  }
+  for(int im=0; im<(int)vmuons.size(); im++) {
+    if(vmuons[im].isLoose)
+      nvetomuons++;
+  }
+   
+  str = TString::Format("checkpost 3 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
+
+  elleptonsf_weight = elleptonsf_weight_stat = elleptonsf_weight_syst = 1;
+  muleptonsf_weight = muleptonsf_weight_stat = muleptonsf_weight_syst = 1;
   
   if(isMC){
     for(int ie=0; ie<(int)velectrons.size(); ie++) {
       float *sfvalues;
-      //      if( LJets.size() > 0 && (delta2R(velectrons[ie].p4,LJets[min(0,int(LJets.size()-1))].p4)<0.7 || delta2R(velectrons[ie].p4,LJets[min(1,int(LJets.size()-1))].p4)<0.7))
-	sfvalues = Electron_SF(velectrons[ie].pt,velectrons[ie].eta,"reco");
-	//else if(!velectrons[ie].vetoid_tight)
-	//	sfvalues = Electron_SF(velectrons[ie].pt,velectrons[ie].eta,"reco");
-	//else
-	//	sfvalues = Electron_SF(velectrons[ie].pt,velectrons[ie].eta,"Tight");
-	elleptonsf_weight *= sfvalues[0];
+      sfvalues = Electron_SF(velectrons[ie].pt,velectrons[ie].eta,"reco");
+      elleptonsf_weight *= sfvalues[0];
       elleptonsf_weight_stat *= (sfvalues[0] + sqrt(sfvalues[1]*sfvalues[1] + sfvalues[2]*sfvalues[2]));  // like this for time being
       elleptonsf_weight_syst *= (sfvalues[0] + sqrt(sfvalues[3]*sfvalues[3] + sfvalues[4]*sfvalues[4] + sfvalues[5]*sfvalues[5] + sfvalues[6]*sfvalues[6]));  // like this for time being
-      }
+    }
     
     for(int im=0; im<(int)vmuons.size(); im++) {
       float *sfvalues;
-      //      if( LJets.size() > 0 && (delta2R(vmuons[im].p4,LJets[min(0,int(LJets.size()-1))].p4)<0.7 || delta2R(vmuons[im].p4,LJets[min(1,int(LJets.size()-1))].p4)<0.7))
-	sfvalues = Muon_SF(vmuons[im].pt,vmuons[im].eta,"reco");
-	//      else if(!vmuons[im].vetoid_tight)
-	//	sfvalues = Muon_SF(vmuons[im].pt,vmuons[im].eta,"reco");
-	//else
-	//sfvalues = Muon_SF(vmuons[im].pt,vmuons[im].eta,"Tight");
+      sfvalues = Muon_SF(vmuons[im].pt,vmuons[im].eta,"reco");
       muleptonsf_weight *= sfvalues[0];
       muleptonsf_weight_stat *= sfvalues[1];
       muleptonsf_weight_syst *= sfvalues[2];
     }
     //weight *= leptonsf_weight;
   }
-  weight[0] *=elleptonsf_weight;
-  weight[1] *=elleptonsf_weight*muleptonsf_weight;
-  weight[2] *=muleptonsf_weight;
+  weight_ch[0] *=elleptonsf_weight;
+  weight_lepeff_ee = elleptonsf_weight; 
+  weight_lepeff_stat_ee = elleptonsf_weight_stat;
+  weight_lepeff_syst_ee = elleptonsf_weight_syst;
   
-  vector <AK4Jet> Jets;
-  getAK4jets(Jets, 30 ,absetacut,isMC);
+  weight_ch[1] *=elleptonsf_weight*muleptonsf_weight;
+  weight_lepeff_emu = elleptonsf_weight*muleptonsf_weight; 
+  weight_lepeff_stat_emu = elleptonsf_weight_stat*muleptonsf_weight_stat;
+  weight_lepeff_syst_emu = elleptonsf_weight_syst*muleptonsf_weight_syst;
 
+  weight_ch[2] *=muleptonsf_weight;
+  weight_lepeff_mumu = muleptonsf_weight; 
+  weight_lepeff_stat_mumu = muleptonsf_weight_stat;
+  weight_lepeff_syst_mumu = muleptonsf_weight_syst;
+  
   for(auto & jet: Jets){
     
     BTagEntry::JetFlavor btv_flav;
@@ -407,8 +541,8 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
   }
 
   btag_SF = btag_SF_up = btag_SF_dn = 1;
-  float p_mc, p_data;
-  p_mc = p_data = 1;
+  float p_mc, p_data, p_data_up, p_data_dn;
+  p_mc = p_data = p_data_up = p_data_dn = 1;
 
   float btag_loosecut,btag_medcut,btag_tightcut;
   btag_loosecut = 0.0490;   btag_medcut = 0.2783;   btag_tightcut = 0.7100; //for UL18
@@ -452,20 +586,26 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
 	{
 	  p_mc *= max((double)0.00001,eff_m);
 	  p_data *= jet.btag_DeepFlav_med_SF*eff_m;
+	  p_data_up *= jet.btag_DeepFlav_med_SF_up*eff_m;
+	  p_data_dn *= jet.btag_DeepFlav_med_SF_dn*eff_m;	
 	}
       else
 	{
 	  p_mc *= max((double)0.00001,1 - eff_m);
 	  p_data *= 1 - jet.btag_DeepFlav_med_SF*eff_m;
+	  p_data_up *= 1 - jet.btag_DeepFlav_med_SF_up*eff_m;
+	  p_data_dn *= 1 - jet.btag_DeepFlav_med_SF_dn*eff_m;
 	}
     }
-    }
+  }
 
-  btag_SF = p_data/p_mc;
+  weight_btag = p_data/p_mc;
+  weight_btag_up = p_data_up/p_mc;
+  weight_btag_down = p_data_dn/p_mc;
   // for(int ich =0; ich < nchannel; ich++)
-      //weight[ich] *= btag_SF;
+  //weight_ch[ich] *= btag_SF;
   
-  if(isnan(weight[0]) || isnan(weight[1]) || isnan(weight[2])){
+  if(isnan(weight_ch[0]) || isnan(weight_ch[1]) || isnan(weight_ch[2])){
     str = TString::Format("check for evt %d weight %f btagsf %f leptonsf %f",ievt,weight[0],btag_SF,elleptonsf_weight);          
     if(gProofServ) gProofServ->SendAsynMessage(str);
   }
@@ -473,6 +613,9 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
   if(isTT && (weight[0] < -2000 || weight[1] < -2000 || weight[2] < -2000))
     return kFALSE;
   std::vector<std::pair<int,TLorentzVector> > TrigRefObj;
+
+  str = TString::Format("checkpost 4 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
   
   for (int tr=0; tr<ntrigobjs; tr++) {
     TLorentzVector trigobj;
@@ -487,56 +630,56 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
   bool trig_matching_pass[3] = {false,false,false};
 
   /*int nelmatch = 0, nmumatch = 0;
-  int nobjs=0;
-  for (int trv=0; trv<(int)TrigRefObj.size(); trv++) {
+    int nobjs=0;
+    for (int trv=0; trv<(int)TrigRefObj.size(); trv++) {
     float mindelpt_el = 100, mindelpt_mu = 100;
     float mindelN_el = 100, mindelN_mu = 100;
     for(int il=0; il<min(2,(int)vleptons.size()); il++) {
-      float dr = delta2R(vleptons[il].p4,TrigRefObj[trv].second);
-      if(dr > 0.2) continue;
-      float deltaN = fabs((vleptons[il].p4 - TrigRefObj[trv].second).P()/max(float(0.00001),(float)vleptons[il].p4.P()));
-      float deltapt = fabs((vleptons[il].pt - TrigRefObj[trv].second.Pt())/max(float(0.00001),vleptons[il].pt));
-      if(abs(vleptons[il].pdgId) == abs(TrigRefObj[trv].first))  //for muon
-	{
-	  if(hlt_Mu37TkMu27){
-	    hist_init[3]->Fill(deltapt,weight);
-	    hist_prptangle[3]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
-	  }
-	  if(hlt_Mu27Ele37 || hlt_Mu37Ele27){
-	    hist_init[2]->Fill(deltapt,weight);
-	    hist_prptangle[2]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
-	  }
-	  if(deltapt<mindelpt_mu)    mindelpt_mu = deltapt;
-	  if(deltaN<mindelN_mu)    mindelN_mu = deltaN;
-	}
-      else if(abs(vleptons[il].pdgId) == 11 && TrigRefObj[trv].first == 0) // for electron
-	{
-	  if(hlt_DoubleEle25){
-	    hist_init[0]->Fill(deltapt,weight);
-	    hist_prptangle[0]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
-	  }
-	  if(hlt_Mu27Ele37 || hlt_Mu37Ele27){
-	    hist_init[1]->Fill(deltapt,weight);
-	    hist_prptangle[1]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
-	  }
-	  if(deltapt<mindelpt_el)   mindelpt_el = deltapt;
-	  if(deltaN<mindelN_el)   mindelN_el = deltaN;
-	}
+    float dr = delta2R(vleptons[il].p4,TrigRefObj[trv].second);
+    if(dr > 0.2) continue;
+    float deltaN = fabs((vleptons[il].p4 - TrigRefObj[trv].second).P()/max(float(0.00001),(float)vleptons[il].p4.P()));
+    float deltapt = fabs((vleptons[il].pt - TrigRefObj[trv].second.Pt())/max(float(0.00001),vleptons[il].pt));
+    if(abs(vleptons[il].pdgId) == abs(TrigRefObj[trv].first))  //for muon
+    {
+    if(hlt_Mu37TkMu27){
+    hist_init[3]->Fill(deltapt,weight);
+    hist_prptangle[3]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
+    }
+    if(hlt_Mu27Ele37 || hlt_Mu37Ele27){
+    hist_init[2]->Fill(deltapt,weight);
+    hist_prptangle[2]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
+    }
+    if(deltapt<mindelpt_mu)    mindelpt_mu = deltapt;
+    if(deltaN<mindelN_mu)    mindelN_mu = deltaN;
+    }
+    else if(abs(vleptons[il].pdgId) == 11 && TrigRefObj[trv].first == 0) // for electron
+    {
+    if(hlt_DoubleEle25){
+    hist_init[0]->Fill(deltapt,weight);
+    hist_prptangle[0]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
+    }
+    if(hlt_Mu27Ele37 || hlt_Mu37Ele27){
+    hist_init[1]->Fill(deltapt,weight);
+    hist_prptangle[1]->Fill(vleptons[il].p4.Pt(),deltaN,weight);
+    }
+    if(deltapt<mindelpt_el)   mindelpt_el = deltapt;
+    if(deltaN<mindelN_el)   mindelN_el = deltaN;
+    }
     }
     if(mindelpt_el < 0.1) nelmatch++;
     else if(mindelpt_mu < 0.05) nmumatch++;
     if(nobjs<25)
-      {
-	delpt_el[nobjs] = mindelpt_el;
-	delpt_mu[nobjs] = mindelpt_mu;
-	delN_el[nobjs] = mindelN_el;
-	delN_mu[nobjs] = mindelN_mu;
-      }
-  }
+    {
+    delpt_el[nobjs] = mindelpt_el;
+    delpt_mu[nobjs] = mindelpt_mu;
+    delN_el[nobjs] = mindelN_el;
+    delN_mu[nobjs] = mindelN_mu;
+    }
+    }
 
-  if(nelmatch > 1) trig_matching_pass[0] = true;
-  if(nelmatch > 0 && nmumatch >0) trig_matching_pass[1] = true;
-  if(nmumatch >1) trig_matching_pass[2] = true;
+    if(nelmatch > 1) trig_matching_pass[0] = true;
+    if(nelmatch > 0 && nmumatch >0) trig_matching_pass[1] = true;
+    if(nmumatch >1) trig_matching_pass[2] = true;
   */
 
   vector<TH1D*> hists1, hists2, hists3;
@@ -590,7 +733,7 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
 		  vleptons[0],vleptons[1],Jets,
 		  trig_threshold_pass[0],
 		  trig_matching_pass[0],
-		  hists1,hist2d_prptangle1,weight[0]
+		  hists1,hist2d_prptangle1,weight_ch[0]
 		  );
     
     Match_trigger(vsinglelep_trig,vdoublelep_trig[1],		
@@ -598,7 +741,7 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
 		  vleptons[0],vleptons[1],Jets,
 		  trig_threshold_pass[1],
 		  trig_matching_pass[1],
-		  hists2,hist2d_prptangle2,weight[1]
+		  hists2,hist2d_prptangle2,weight_ch[1]
 		  );
     
     Match_trigger(vsinglelep_trig,vdoublelep_trig[2],		
@@ -606,9 +749,17 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
 		  vleptons[0],vleptons[1],Jets,
 		  trig_threshold_pass[2],
 		  trig_matching_pass[2],
-		  hists3,hist2d_prptangle3,weight[2]
+		  hists3,hist2d_prptangle3,weight_ch[2]
 		  );	   
+
   }
+  str = TString::Format("checkpost 5 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
+
+  bool itrig_ortho_trig = false;
+ 
+  itrig_ortho_trig = hlt_AK8PFHT800_TrimMass50 || hlt_AK8PFHT900_TrimMass50 || hlt_AK8PFJet420_TrimMass30 || hlt_AK8PFJet550 || hlt_CaloJet500_NoJetID || hlt_PFHT1050 || hlt_PFJet500 || hlt_AK8PFJet500;
+
   trig_met = float(itrig_ortho_trig);
   trig_ee = float(hlt_DoubleEle25);
   trig_emu = float(hlt_Mu27Ele37 || hlt_Mu37Ele27);
@@ -620,9 +771,9 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
     invmll = (vleptons[0].p4 + vleptons[1].p4).M();
 
 
-  float ee_chnl_toptaggercut1 = 0.3; float ee_chnl_toptaggercut2 = 0.3;
-  float emu_chnl_eltoptaggercut1 = 0.3; float emu_chnl_mutoptaggercut2 = 0.0;
-  float mumu_chnl_toptaggercut1 = 0.0; float mumu_chnl_toptaggercut2 = 0.0;
+  float ee_chnl_toptaggercut1 = 0.75; float ee_chnl_toptaggercut2 = 0.88;
+  float emu_chnl_eltoptaggercut1 = 0.8; float emu_chnl_mutoptaggercut2 = 0.5;
+  float mumu_chnl_toptaggercut1 = 0.33; float mumu_chnl_toptaggercut2 = 0.9;
 
   
   bool emuchannel_tagcutcondition = false;
@@ -637,166 +788,187 @@ Bool_t Trigg_eff_cal::Process(Long64_t entry)
       ReadTagger(LJets,vleptons,vmuons,velectrons,reader1,reader4);
       /*if(abs(vleptons[0].pdgId) == 13 && abs(vleptons[1].pdgId) == 11)
 	{
-	  emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_mutoptaggercut2) && (LJets[1].re_tvsb > emu_chnl_eltoptaggercut1);
-	  emulepcand1= vleptons[1];
-	  emulepcand2 = vleptons[0]; 
+	emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_mutoptaggercut2) && (LJets[1].re_tvsb > emu_chnl_eltoptaggercut1);
+	emulepcand1= vleptons[1];
+	emulepcand2 = vleptons[0]; 
 	}
-      else if(abs(vleptons[0].pdgId) == 11 && abs(vleptons[1].pdgId) == 13)
+	else if(abs(vleptons[0].pdgId) == 11 && abs(vleptons[1].pdgId) == 13)
 	{
-	  emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_eltoptaggercut1) && (LJets[1].re_tvsb > emu_chnl_mutoptaggercut2);
-	  emulepcand1= vleptons[0];
-	  emulepcand2 = vleptons[1]; 
+	emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_eltoptaggercut1) && (LJets[1].re_tvsb > emu_chnl_mutoptaggercut2);
+	emulepcand1= vleptons[0];
+	emulepcand2 = vleptons[1]; 
         }*/
       response_ak81 = LJets[0].re_tvsb;
       response_ak82 = LJets[1].re_tvsb;
 
       if(abs(vleptons[0].pdgId) == 13)
 	{
-	  emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_mutoptaggercut2);
+	  emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_mutoptaggercut2 && LJets[1].re_tvsb > emu_chnl_eltoptaggercut1);
 	  emulepcand1 = vleptons[1];
 	  emulepcand2 = vleptons[0]; 
 	}
       else if(abs(vleptons[0].pdgId) == 11)
 	{
-	  emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_eltoptaggercut1);
+	  emuchannel_tagcutcondition = (LJets[0].re_tvsb > emu_chnl_eltoptaggercut1 && LJets[1].re_tvsb > emu_chnl_mutoptaggercut2);
 	  emulepcand1 = vleptons[0];
 	  emulepcand2 = vleptons[1]; 
 	}
     }
 
-  bool lepmatchwithak8 = false;
+  deltaphi = -1.0;
+  if((int)LJets.size()>1)  deltaphi = fabs(PhiInRange(LJets[0].phi - LJets[1].phi));
 
-  if((int)vleptons.size()>1 && vleptons[0].pdgId == lepcand1.pdgId && vleptons[0].indexemu == lepcand1.indexemu && ( (abs(lepcand2.pdgId) == 11 && velectrons[lepcand2.indexemu].mvaWPloose_noIso ) || (abs(lepcand2.pdgId) == 13 ) ))
-    lepmatchwithak8 = true;
-  else if( (int)vleptons.size()>1 && vleptons[0].pdgId == lepcand2.pdgId && vleptons[0].indexemu == lepcand2.indexemu && ( (abs(lepcand1.pdgId) == 11 && velectrons[lepcand1.indexemu].mvaWPloose_noIso ) || (abs(lepcand1.pdgId) == 13 ) ))
-    lepmatchwithak8 = true;
+  lepmatchwithak8 = 0;
+
+  if((int)vleptons.size()>1 && vleptons[0].pdgId == lepcand1.pdgId && vleptons[0].indexemu == lepcand1.indexemu && vleptons[1].pdgId == lepcand2.pdgId && vleptons[1].indexemu == lepcand2.indexemu)
+    lepmatchwithak8 = 1;
+  else if( (int)vleptons.size()>1 && vleptons[0].pdgId == lepcand2.pdgId && vleptons[0].indexemu == lepcand2.indexemu && vleptons[1].pdgId == lepcand1.pdgId && vleptons[1].indexemu == lepcand1.indexemu)
+    lepmatchwithak8 = 1;
  
   // str = TString::Format("check for evt %d      %d %d  %d %d      %f %f  %f %f      matched = %d",ievt,vleptons[0].pdgId,vleptons[1].pdgId,lepcand1.pdgId,lepcand2.pdgId,vleptons[0].pt,vleptons[1].pt,lepcand1.pt,lepcand2.pt,lepmatchwithak8);          
   //if(gProofServ) gProofServ->SendAsynMessage(str);
- 
-     object_pass[0] =    (((int)vleptons.size() >1 && vleptons[1].pt > 10 && vleptons[0].pt > 10 && abs(vleptons[0].pdgId) == 11 && abs(vleptons[1].pdgId) == 11 && vleptons[0].pdgId*vleptons[1].pdgId <0)) && chs_met >200 && (int)LJets.size()>0 && LJets[0].re_tvsb > ee_chnl_toptaggercut1  && delta2R(LJets[0].p4,vleptons[0].p4)<0.7 && lepmatchwithak8 && itrig_ortho_trig;
+  
+  isttbar_ee = (isTTDilep && tt_decay_mode == 20) || ( !isTTDilep && !isTT ) || ( !isTTDilep && isTT && tt_decay_mode != 20);
+  isttbar_emu = (isTTDilep && tt_decay_mode == 110) || ( !isTTDilep && !isTT ) || ( !isTTDilep && isTT && tt_decay_mode != 110);
+  isttbar_mumu = (isTTDilep && tt_decay_mode == 200) || ( !isTTDilep && !isTT ) || ( !isTTDilep && isTT && tt_decay_mode != 200);
+
+    str = TString::Format("checkpost 6 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
+
+  /*  object_pass[0] =    (((int)vleptons.size() >1 && vleptons[1].pt > 10 && vleptons[0].pt > 10 && abs(vleptons[0].pdgId) == 11 && abs(vleptons[1].pdgId) == 11 && vleptons[0].pdgId*vleptons[1].pdgId <0))  && (int)LJets.size()>1 && min(LJets[0].re_tvsb,LJets[1].re_tvsb) > ee_chnl_toptaggercut1 && max(LJets[0].re_tvsb,LJets[1].re_tvsb) > ee_chnl_toptaggercut2 && delta2R(LJets[0].p4,vleptons[0].p4)<0.7 && delta2R(LJets[1].p4,vleptons[1].p4)<0.7 && lepmatchwithak8 == 1 && itrig_ortho_trig && (tt_decay_mode == 20 || !isTT);
 
   object_pass[1] =    ( ((int)vleptons.size() >1 && vleptons[0].pt > 10  && vleptons[0].pt > 10 && abs(vleptons[0].pdgId) == 13 && abs(vleptons[1].pdgId) == 11 && vleptons[0].pdgId*vleptons[1].pdgId <0)
-			|| ((int)vleptons.size() >1 && vleptons[0].pt > 10  && vleptons[0].pt > 10 && abs(vleptons[1].pdgId) == 13 && abs(vleptons[0].pdgId) == 11 && vleptons[0].pdgId*vleptons[1].pdgId <0)) && chs_met > 200 && (int)LJets.size()>0 && emuchannel_tagcutcondition  && delta2R(LJets[0].p4,vleptons[0].p4)<0.7 && lepmatchwithak8 && itrig_ortho_trig;
-    //             || ((int)vmuons.size() >0 && vmuons[0].pt > 53)
-    /*             || ((int)velectrons.size() > 0 && velectrons[0].pt > 53 && (int)Jets.size() > 0 && Jets[0].pt > 180)*/
+			|| ((int)vleptons.size() >1 && vleptons[0].pt > 10  && vleptons[0].pt > 10 && abs(vleptons[1].pdgId) == 13 && abs(vleptons[0].pdgId) == 11 && vleptons[0].pdgId*vleptons[1].pdgId <0)) && (int)LJets.size()>1 && emuchannel_tagcutcondition  && delta2R(LJets[0].p4,vleptons[0].p4)<0.7 && delta2R(LJets[1].p4,vleptons[1].p4)<0.7 && lepmatchwithak8 == 1 && itrig_ortho_trig && (tt_decay_mode == 110 || !isTT);
+			//             || ((int)vmuons.size() >0 && vmuons[0].pt > 53)*/
+  /*             || ((int)velectrons.size() > 0 && velectrons[0].pt > 53 && (int)Jets.size() > 0 && Jets[0].pt > 180)*/
 
-  object_pass[2] =    (((int)vleptons.size() >1 && vleptons[1].pt > 10 && vleptons[0].pt > 10 && abs(vleptons[0].pdgId) == 13 && abs(vleptons[1].pdgId) == 13 && vleptons[0].pdgId*vleptons[1].pdgId <0)) && chs_met > 200 && (int)LJets.size()>0 && LJets[0].re_tvsb > mumu_chnl_toptaggercut1 && delta2R(LJets[0].p4,vleptons[0].p4)<0.7 && abs(lep1pdg) == 13 && abs(lep2pdg) == 13 && lepmatchwithak8 && itrig_ortho_trig;
+  //object_pass[2] =    (((int)vleptons.size() >1 && vleptons[1].pt > 10 && vleptons[0].pt > 10 && abs(vleptons[0].pdgId) == 13 && abs(vleptons[1].pdgId) == 13 && vleptons[0].pdgId*vleptons[1].pdgId <0)) && (int)LJets.size()>1 && min(LJets[0].re_tvsb,LJets[1].re_tvsb) > mumu_chnl_toptaggercut1 && max(LJets[0].re_tvsb,LJets[1].re_tvsb) > mumu_chnl_toptaggercut2 && delta2R(LJets[0].p4,vleptons[0].p4)<0.7 && delta2R(LJets[1].p4,vleptons[1].p4)<0.7  && abs(lep1pdg) == 13 && abs(lep2pdg) == 13 && lepmatchwithak8 == 1 && itrig_ortho_trig && (tt_decay_mode == 200 || !isTT);
   
-  for(int ich =0; ich < nchannel; ich++)   
-    {
-      if(object_pass[ich] && ich != 1){
-	hist_count[ich]->Fill(2.0,weight[ich]);
-	hist_ortho_trig_2d[0][ich]->Fill(min(float(499.0),(float)lepcand1.pt),min(float(499.0),(float)lepcand2.pt), weight[ich]);
-	hist_ortho_trig_2d[1][ich]->Fill(lepcand1.eta,lepcand2.eta, weight[ich]);
-	hist_ortho_trig_2d[2][ich]->Fill(lepcand1.phi,lepcand2.phi, weight[ich]);
-	hist_ortho_trig_2d[3][ich]->Fill(min(float(499.0),(float)lepcand1.pt),min(float(499.0),(float)lepcand2.pt));
-	hist_ortho_trig[0][ich]->Fill(lepcand1.pt + lepcand2.pt, weight[ich]);
-	hist_ortho_trig[1][ich]->Fill((lepcand1.p4 + lepcand2.p4).M(), weight[ich]);
-	hist_ortho_trig[2][ich]->Fill((lepcand1.p4 + lepcand2.p4).Phi(), weight[ich]);
-	hist_ortho_trig[3][ich]->Fill((lepcand1.p4 + lepcand2.p4).Eta(), weight[ich]);
-	hist_ortho_trig[4][ich]->Fill(Jets.size(), weight[ich]);
-      }
-      else if(object_pass[ich] && ich == 1)
-	{
-	  hist_count[ich]->Fill(2.0,weight[ich]);
-	  hist_ortho_trig_2d[0][ich]->Fill(min(float(499.0),(float)emulepcand1.pt),min(float(499.0),(float)emulepcand2.pt), weight[ich]);
-	  hist_ortho_trig_2d[1][ich]->Fill(emulepcand1.eta,emulepcand2.eta, weight[ich]);
-	  hist_ortho_trig_2d[2][ich]->Fill(emulepcand1.phi,emulepcand2.phi, weight[ich]);
-	  hist_ortho_trig_2d[3][ich]->Fill(min(float(499.0),(float)emulepcand1.pt),min(float(499.0),(float)emulepcand2.pt));
-	  hist_ortho_trig[0][ich]->Fill(emulepcand1.pt + emulepcand2.pt, weight[ich]);
-	  hist_ortho_trig[1][ich]->Fill((emulepcand1.p4 + emulepcand2.p4).M(), weight[ich]);
-	  hist_ortho_trig[2][ich]->Fill((emulepcand1.p4 + emulepcand2.p4).Phi(), weight[ich]);
-	  hist_ortho_trig[3][ich]->Fill((emulepcand1.p4 + emulepcand2.p4).Eta(), weight[ich]);
-	  hist_ortho_trig[4][ich]->Fill(Jets.size(), weight[ich]);
-	}
-    }
-
-  bool trig_check[nchannel] = {false};
+  jet_trigger_unprescale = float(hlt_AK8PFHT800_TrimMass50 || hlt_AK8PFHT900_TrimMass50 || hlt_AK8PFJet400_TrimMass30 || hlt_AK8PFJet420_TrimMass30 || hlt_AK8PFJet550 || hlt_CaloJet500_NoJetID || hlt_PFHT1050 || hlt_PFJet500 || hlt_AK8PFJet500);
   
-  trig_check[0] =    hlt_DoubleEle25;
+  jet_trigger_prescale = float(hlt_AK8PFJet320 ||  hlt_AK8PFJet330_PFAK8BTagDeepCSV || hlt_AK8PFJet360_TrimMass30 || hlt_DiPFJetAve400 || hlt_PFJet400 || hlt_PFJet320 || hlt_PFJet200);
 
-  trig_check[1] =    ( hlt_Mu37Ele27   || hlt_Mu27Ele37 )
-    //            || (hlt_Mu50 && (int)vmuons.size() >0 && vmuons[].pt > 53)
-    /*            || (hlt_Ele50_PFJet165 && (int)velectrons.size() > 0 && velectrons[0].pt > 53 && (int)Jets.size() > 0 && Jets[0].pt > 180) )*/ ;
+  met_trigger_unprescale = float(hlt_PFMET250 || hlt_PFMET300 || hlt_PFMET200 || hlt_PFMET200_TypeOne);
 
-  trig_check[2] =    hlt_Mu37TkMu27;
+  met_trigger_prescale = float(hlt_CaloMET100_HBHECleaned || hlt_CaloMET250_HBHECleaned || hlt_CaloMET90_HBHECleaned || hlt_CaloMET70_HBHECleaned || hlt_PFMETTypeOne140_PFMHT140_IDTight || hlt_PFMETTypeOne120_PFMHT120_IDTight || hlt_CaloMET80_HBHECleaned);
 
-  if(isnan(vleptons[0].pt) || isnan(vleptons[0].eta) || isnan(vleptons[0].phi) || isnan(vleptons[1].pt) || isnan(vleptons[1].eta) || isnan(vleptons[1].phi) || isnan(Jets.size())){
+  ee_trigger = float(hlt_DoubleEle25);
+  emu_trigger = float(hlt_Mu37Ele27||hlt_Mu27Ele37);
+  mumu_trigger = float(hlt_Mu37TkMu27);
+  trig_matching_pass_ee = float(trig_matching_pass[0]);
+  trig_matching_pass_emu = float(trig_matching_pass[1]);
+  trig_matching_pass_mumu = float(trig_matching_pass[2]);
+  
+  if((int)vleptons.size()>1 && (isnan(vleptons[0].pt) || isnan(vleptons[0].eta) || isnan(vleptons[0].phi) || isnan(vleptons[1].pt) || isnan(vleptons[1].eta) || isnan(vleptons[1].phi) || isnan(Jets.size()))){
     str = TString::Format("check for evt %d",ievt);          
     if(gProofServ) gProofServ->SendAsynMessage(str);
   }
+
+  str = TString::Format("checkpost 7 for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
+
   
-  for(int ich =0; ich < nchannel; ich++)   
-    {
-      if(object_pass[ich] && trig_check[ich] && ich!=1){
-	hist_count[ich]->Fill(3,weight[ich]);
-	hist_trig_eff_2d_unmatched[0][ich]->Fill(min(float(499.0),(float)lepcand1.pt),min(float(499.0),(float)lepcand2.pt), weight[ich]);
-	hist_trig_eff_2d_unmatched[1][ich]->Fill(lepcand1.eta,lepcand2.eta, weight[ich]);
-	hist_trig_eff_2d_unmatched[2][ich]->Fill(lepcand1.phi,lepcand2.phi, weight[ich]);
-	hist_trig_eff_2d_unmatched[3][ich]->Fill(min(float(499.0),(float)lepcand1.pt),min(float(499.0),(float)lepcand2.pt));
-	hist_trig_eff_unmatched[0][ich]->Fill(lepcand1.pt, weight[ich]);
-	hist_trig_eff_unmatched[1][ich]->Fill((lepcand1.p4 + lepcand2.p4).M(), weight[ich]);
-	hist_trig_eff_unmatched[2][ich]->Fill(lepcand1.p4.Phi(), weight[ich]);
-	hist_trig_eff_unmatched[3][ich]->Fill(lepcand1.p4.Eta(), weight[ich]);
-	hist_trig_eff_unmatched[4][ich]->Fill(Jets.size(), weight[ich]);
+  if((int)vleptons.size() >1 && vleptons[1].pt > 10 && vleptons[0].pt > 10 && (int)LJets.size()>1  && delta2R(LJets[1].p4,vleptons[1].p4)<0.8 && delta2R(LJets[0].p4,vleptons[0].p4)<0.8 && lep1_pdg*lep2_pdg < 0 && (jet_trigger_unprescale ==1 ||  jet_trigger_prescale ==1 ||  met_trigger_unprescale ==1 ||  met_trigger_prescale ==1))
+  {
+    n_electrons = (int)velectrons.size();
+    n_muons = (int)vmuons.size();
+    nak8jets = (int)LJets.size();
+    ak8jet1_pt = LJets[0].pt;
+    ak8jet1_sdmass = LJets[0].sdmass;
+    ak8jet1_eta = LJets[0].eta;
+    ak8jet1_phi = LJets[0].phi;
+    ak8jet1_mass = LJets[0].mass;
+    ak8jet2_pt = LJets[1].pt;
+    ak8jet2_eta = LJets[1].eta;
+    ak8jet2_phi = LJets[1].phi;
+    ak8jet2_mass = LJets[1].mass;
+    ak8jet2_sdmass = LJets[1].sdmass;
+    ak8jet1_toptagscore = LJets[0].re_tvsb;
+    ak8jet2_toptagscore = LJets[1].re_tvsb;
+    nak4jets = (int)Jets.size();
+    chs_met_up = miset_UnclusEup;
+    chs_met_down = miset_UnclusEdn;
+
+    deltaRlep1 = delta2R(LJets[0].p4,vleptons[0].p4);
+    deltaRlep2 = delta2R(LJets[1].p4,vleptons[1].p4);
+  
+    total_weight_ee = weight_ch[0];
+    total_weight_emu = weight_ch[1];
+    total_weight_mumu = weight_ch[2];
+
+    dirgltrthr = 0;
+    dirglthrmin = 0;
+    
+    if ((int)Jets.size()>=1) {
+      std::vector<TLorentzVector> allsjets_4v;
+      double Pt_sum(0.);
+      for(int ijet=0; ijet< (int)Jets.size(); ijet++){
+	TLorentzVector sjv = Jets[ijet].p4;
+	allsjets_4v.push_back(sjv);
+	Pt_sum += Jets[ijet].pt;
       }
-      else if(object_pass[ich] && trig_check[ich] && ich==1){
-	hist_count[ich]->Fill(3,weight[ich]);
-	hist_trig_eff_2d_unmatched[0][ich]->Fill(min(float(499.0),(float)emulepcand1.pt),min(float(499.0),(float)emulepcand2.pt), weight[ich]);
-	hist_trig_eff_2d_unmatched[1][ich]->Fill(emulepcand1.eta,emulepcand2.eta, weight[ich]);
-	hist_trig_eff_2d_unmatched[2][ich]->Fill(emulepcand1.phi,emulepcand2.phi, weight[ich]);
-	hist_trig_eff_2d_unmatched[3][ich]->Fill(min(float(499.0),(float)emulepcand1.pt),min(float(499.0),(float)emulepcand2.pt));
-	hist_trig_eff_unmatched[0][ich]->Fill(emulepcand1.pt, weight[ich]);
-	hist_trig_eff_unmatched[1][ich]->Fill((emulepcand1.p4 + emulepcand2.p4).M(), weight[ich]);
-	hist_trig_eff_unmatched[2][ich]->Fill(emulepcand1.p4.Phi(), weight[ich]);
-	hist_trig_eff_unmatched[3][ich]->Fill(emulepcand1.p4.Eta(), weight[ich]);
-	hist_trig_eff_unmatched[4][ich]->Fill(Jets.size(), weight[ich]);
+      
+      for(int ilep=0; ilep<(int)velectrons.size(); ilep++){
+	TLorentzVector sjv = velectrons[ilep].p4;
+	allsjets_4v.push_back(sjv);
+	Pt_sum += velectrons[ilep].p4.Pt();
       }
+      
+      for(int ilep=0; ilep<(int)vmuons.size(); ilep++){
+	TLorentzVector sjv = vmuons[ilep].p4;
+	allsjets_4v.push_back(sjv);
+	Pt_sum += vmuons[ilep].p4.Pt();
+      }
+      std::vector<double> ThrustAxis;
+      std::vector<double> Thrust;
+      
+      for(unsigned int j =0;j<4;j++){                                                            
+	Thrust.push_back(0.01);                                                                    
+      }
+      Thrust_calculate(allsjets_4v,Thrust);
+      dirgltrthr = Thrust[3];
+      
+      double alpha=atan2(Thrust[1],Thrust[0]);
+      for( int i=0; i<(int)allsjets_4v.size(); i++){
+	dirglthrmin += fabs(-sin(alpha)*allsjets_4v[i].Px()+cos(alpha)*allsjets_4v[i].Py());
+      }
+      dirglthrmin = dirglthrmin/max(1.0, Pt_sum);
     }
 
-  for(int ich =0; ich < nchannel; ich++)   
-    {
-      if(object_pass[ich] && trig_check[ich] && trig_matching_pass[ich] && ich !=1){
-	hist_count[ich]->Fill(4,weight[ich]);
-	hist_trig_eff_2d[0][ich]->Fill(min(float(499.0),(float)lepcand1.pt),min(float(499.0),(float)lepcand2.pt), weight[ich]);
-	hist_trig_eff_2d[1][ich]->Fill(lepcand1.eta,lepcand2.eta, weight[ich]);
-	hist_trig_eff_2d[2][ich]->Fill(lepcand1.phi,lepcand2.phi, weight[ich]);
-	hist_trig_eff_2d[3][ich]->Fill(min(float(499.0),(float)lepcand1.pt),min(float(499.0),(float)lepcand2.pt));
-	hist_trig_eff[0][ich]->Fill(lepcand1.pt, weight[ich]);
-	hist_trig_eff[1][ich]->Fill((lepcand1.p4 + lepcand2.p4).M(), weight[ich]);
-	hist_trig_eff[2][ich]->Fill(lepcand1.p4.Phi(), weight[ich]);
-	hist_trig_eff[3][ich]->Fill(lepcand1.p4.Eta(), weight[ich]);
-	hist_trig_eff[4][ich]->Fill(Jets.size(), weight[ich]);	
+    EventHT = -1;	
+    
+    if ((int)Jets.size()>=1) {
+      std::vector<TLorentzVector> allsjets_4v;
+      double Pt_sum(0.);
+      for(int ijet=0; ijet< (int)Jets.size(); ijet++){
+	TLorentzVector sjv = Jets[ijet].p4;
+	allsjets_4v.push_back(sjv);
+	Pt_sum += Jets[ijet].pt;
       }
-      if(object_pass[ich] && trig_check[ich] && trig_matching_pass[ich] && ich==1){
-	hist_count[ich]->Fill(4,weight[ich]);
-	hist_trig_eff_2d[0][ich]->Fill(min(float(499.0),(float)emulepcand1.pt),min(float(499.0),(float)emulepcand2.pt), weight[ich]);
-	hist_trig_eff_2d[1][ich]->Fill(emulepcand1.eta,emulepcand2.eta, weight[ich]);
-	hist_trig_eff_2d[2][ich]->Fill(emulepcand1.phi,emulepcand2.phi, weight[ich]);
-	hist_trig_eff_2d[3][ich]->Fill(min(float(499.0),(float)emulepcand1.pt),min(float(499.0),(float)emulepcand2.pt));
-	hist_trig_eff[0][ich]->Fill(emulepcand1.pt, weight[ich]);
-	hist_trig_eff[1][ich]->Fill((emulepcand1.p4 + emulepcand2.p4).M(), weight[ich]);
-	hist_trig_eff[2][ich]->Fill(emulepcand1.p4.Phi(), weight[ich]);
-	hist_trig_eff[3][ich]->Fill(emulepcand1.p4.Eta(), weight[ich]);
-	hist_trig_eff[4][ich]->Fill(Jets.size(), weight[ich]);
+      
+      for(int ilep=0; ilep<(int)velectrons.size(); ilep++){
+	TLorentzVector sjv = velectrons[ilep].p4;
+	allsjets_4v.push_back(sjv);
+	Pt_sum += velectrons[ilep].p4.Pt();
       }
+      
+      for(int ilep=0; ilep<(int)vmuons.size(); ilep++){
+	TLorentzVector sjv = vmuons[ilep].p4;
+	allsjets_4v.push_back(sjv);
+	Pt_sum += vmuons[ilep].p4.Pt();
+      }
+      
+      EventHT = Pt_sum;	
     }
-
-  if(nbjets>0){
-    if(object_pass[0]) hist_count[0]->Fill(5.0,weight[0]);
-    if(object_pass[1]) hist_count[1]->Fill(5.0,weight[1]);
-    if(object_pass[2]) hist_count[2]->Fill(5.0,weight[2]);
+  
+    Tnewvar->Fill();
   }
-
-  if((int)vleptons.size() > 1 && (int)LJets.size()>1  && delta2R(LJets[1].p4,vleptons[1].p4)<0.7 && delta2R(LJets[0].p4,vleptons[0].p4)<0.7)
-    {
-      Tnewvar->Fill();
-    }
+  str = TString::Format("check END for evt %d ",ievt);         
+  if(gProofServ && debug_mode) gProofServ->SendAsynMessage(str);  
+     
+  return kTRUE;
   
-  return kTRUE;     
 }
-
 void Trigg_eff_cal::SlaveTerminate()
 {
   // The SlaveTerminate() function is called after all entries or objects
@@ -815,28 +987,3 @@ void Trigg_eff_cal::Terminate()
   // the results graphically or save the results to file.
   
 }
-
-
-       /*  int extra_el=0;
-  int extra_mu=0;
-  for(int ie=0; ie<(int)velectrons.size(); ie++) {
-    if(velectrons[ie].looseid)
-      extra_el++;
-  }
-  for(int im=0; im<(int)vmuons.size(); im++) {
-    if(vmuons[im].looseid)
-      extra_mu++;
-      }
-
-  double Pt_sum(0.);
-  if (Jets.size()>=1) {
-    for(unsigned ijet=0; ijet< Jets.size(); ijet++)
-      Pt_sum += Jets[ijet].pt;
-    
-    for(unsigned ilep=0; ilep<velectrons.size(); ilep++)
-      Pt_sum += velectrons[ilep].p4.Pt();
-    
-    for(unsigned ilep=0; ilep<vmuons.size(); ilep++)
-      Pt_sum += vmuons[ilep].p4.Pt();
-  }
-  */

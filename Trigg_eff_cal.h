@@ -3321,6 +3321,15 @@ public :
   int ak81hase,ak81hasmu,ak82hase,ak82hasmu,ak81hasgene,ak81hasgenmu,ak81hasgenb,ak81hasgenhasalldecay,ak82hasgene,ak82hasgenmu,ak82hasgenb,ak82hasgenhasalldecay;
   int genmatch_sc2,genmatch_sc1,topmatchvar;
 
+  float weight_toppt, weight_pileup,weight_pileup_up,weight_pileup_down,weight_prefiring,weight_prefiring_up,weight_prefiring_down,weight_btag,weight_btag_up,weight_btag_down,total_weight_ee,weight_lepeff_ee, weight_lepeff_stat_ee,weight_lepeff_syst_ee,total_weight_emu,weight_lepeff_emu,weight_lepeff_stat_emu,weight_lepeff_syst_emu,total_weight_mumu,weight_lepeff_mumu,weight_lepeff_stat_mumu,weight_lepeff_syst_mumu,n_electrons,n_muons,nvetomuons,nvetoelectrons,nak8jets,ak8jet1_pt,ak8jet2_pt,ak8jet1_sdmass,ak8jet2_sdmass,ak8jet1_toptagscore,ak8jet2_toptagscore,lep1_pdg,lep2_pdg,isttbar_ee,isttbar_emu,isttbar_mumu,deltaRlep1,deltaRlep2,lepmatchwithak8,chs_met_up,chs_met_down,deltaphi,ak8jet1_eta,ak8jet1_mass,ak8jet1_phi,ak8jet2_eta,ak8jet2_phi,ak8jet2_mass,nak4jets,lep1_pt,lep1_eta,lep1_phi,lep2_pt,lep2_eta,lep2_phi,jet_trigger_unprescale,jet_trigger_prescale,met_trigger_unprescale,met_trigger_prescale,ee_trigger,emu_trigger,mumu_trigger,trig_matching_pass_ee,trig_matching_pass_emu,trig_matching_pass_mumu;
+
+  float  psfactor_hlt_IsoMu24,psfactor_hlt_Mu50,psfactor_hlt_Ele50_PFJet165,psfactor_hlt_Ele115,psfactor_hlt_AK8PFJet500,psfactor_hlt_Photon200,psfactor_hlt_Mu37Ele27,psfactor_hlt_Mu27Ele37,psfactor_hlt_Mu37TkMu27,psfactor_hlt_OldMu100,psfactor_hlt_TkMu100,psfactor_hlt_DoubleEle25,psfactor_hlt_PFMET250,psfactor_hlt_PFMET300,psfactor_hlt_PFMET200,psfactor_hlt_PFMET200_TypeOne,psfactor_hlt_AK8PFHT800_TrimMass50,psfactor_hlt_AK8PFHT900_TrimMass50,psfactor_hlt_AK8PFJet400_TrimMass30, psfactor_hlt_AK8PFJet420_TrimMass30,psfactor_hlt_AK8PFJet550,psfactor_hlt_CaloJet500_NoJetID,psfactor_hlt_PFHT1050,psfactor_hlt_PFJet500,psfactor_hlt_AK8PFJet320,psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV,psfactor_hlt_AK8PFJet360_TrimMass30,psfactor_hlt_DiPFJetAve400,psfactor_hlt_PFJet400,psfactor_hlt_PFJet320,psfactor_hlt_PFJet200,psfactor_hlt_CaloMET100_HBHECleaned,psfactor_hlt_CaloMET250_HBHECleaned,psfactor_hlt_CaloMET90_HBHECleaned,psfactor_hlt_CaloMET70_HBHECleaned,psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight,psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight,psfactor_hlt_CaloMET80_HBHECleaned;
+
+  TBranch *b_psfactor_hlt_IsoMu24,*b_psfactor_hlt_Mu50,*b_psfactor_hlt_Ele50_PFJet165,*b_psfactor_hlt_Ele115,*b_psfactor_hlt_AK8PFJet500,*b_psfactor_hlt_Photon200,*b_psfactor_hlt_Mu37Ele27,*b_psfactor_hlt_Mu27Ele37,*b_psfactor_hlt_Mu37TkMu27,*b_psfactor_hlt_OldMu100,*b_psfactor_hlt_TkMu100,*b_psfactor_hlt_DoubleEle25,*b_psfactor_hlt_PFMET250,*b_psfactor_hlt_PFMET300,*b_psfactor_hlt_PFMET200,*b_psfactor_hlt_PFMET200_TypeOne,*b_psfactor_hlt_AK8PFHT800_TrimMass50,*b_psfactor_hlt_AK8PFHT900_TrimMass50,*b_psfactor_hlt_AK8PFJet400_TrimMass30,*b_psfactor_hlt_AK8PFJet420_TrimMass30,*b_psfactor_hlt_AK8PFJet550,*b_psfactor_hlt_CaloJet500_NoJetID,*b_psfactor_hlt_PFHT1050,*b_psfactor_hlt_PFJet500,*b_psfactor_hlt_AK8PFJet320,*b_psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV,*b_psfactor_hlt_AK8PFJet360_TrimMass30,*b_psfactor_hlt_DiPFJetAve400,*b_psfactor_hlt_PFJet400,*b_psfactor_hlt_PFJet320,*b_psfactor_hlt_PFJet200,*b_psfactor_hlt_CaloMET100_HBHECleaned,*b_psfactor_hlt_CaloMET250_HBHECleaned,*b_psfactor_hlt_CaloMET90_HBHECleaned,*b_psfactor_hlt_CaloMET70_HBHECleaned,*b_psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight,*b_psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight,*b_psfactor_hlt_CaloMET80_HBHECleaned;
+
+  bool hlt_AK8PFJet320,hlt_AK8PFJet330_PFAK8BTagDeepCSV,hlt_AK8PFJet360_TrimMass30,hlt_DiPFJetAve400,hlt_PFJet400,hlt_PFJet320,hlt_PFJet200,hlt_CaloMET100_HBHECleaned,hlt_CaloMET250_HBHECleaned,hlt_CaloMET90_HBHECleaned,hlt_CaloMET70_HBHECleaned,hlt_PFMETTypeOne140_PFMHT140_IDTight,hlt_PFMETTypeOne120_PFMHT120_IDTight,hlt_CaloMET80_HBHECleaned,hlt_AK8PFJet400_TrimMass30;
+
+  TBranch *b_hlt_AK8PFJet320, *b_hlt_AK8PFJet330_PFAK8BTagDeepCSV, *b_hlt_AK8PFJet360_TrimMass30, *b_hlt_DiPFJetAve400, *b_hlt_PFJet400, *b_hlt_PFJet320, *b_hlt_PFJet200, *b_hlt_CaloMET100_HBHECleaned, *b_hlt_CaloMET250_HBHECleaned, *b_hlt_CaloMET90_HBHECleaned, *b_hlt_CaloMET70_HBHECleaned, *b_hlt_PFMETTypeOne140_PFMHT140_IDTight, *b_hlt_PFMETTypeOne120_PFMHT120_IDTight, *b_hlt_CaloMET80_HBHECleaned, *b_hlt_AK8PFJet400_TrimMass30;
   float dirgltrthr, dirglthrmin;
 
   static const int njetmx = 20;
@@ -3350,7 +3359,7 @@ public :
   bool Hadtt;
   bool EE, EMU, MUMU, EJets, MUJets, TAUJets, TauTau, ETau, MuTau;
 
-  bool isTT;
+  bool isTT,isTTDilep;
   bool isST;
   bool isDIB;
   bool isWJ;
@@ -3397,7 +3406,7 @@ public :
   Bool_t          hlt_OldMu100;
   Bool_t          hlt_TkMu100;
   Bool_t          hlt_DoubleEle25;
-
+  Bool_t          hlt_AK8PFHT800_TrimMass50,hlt_AK8PFHT900_TrimMass50,hlt_AK8PFJet420_TrimMass30,hlt_AK8PFJet550,hlt_CaloJet500_NoJetID,hlt_PFHT1050,hlt_PFJet500;
   Int_t           ntrigobjs;
   Float_t         trigobjpt[ntrigobjmx];   //[ntrigobjs]
   Float_t         trigobjeta[ntrigobjmx];   //[ntrigobjs]
@@ -3898,7 +3907,7 @@ public :
   TBranch        *b_hlt_OldMu100;
   TBranch        *b_hlt_TkMu100;
   TBranch        *b_hlt_DoubleEle25;
-
+  TBranch        *b_hlt_AK8PFHT800_TrimMass50,*b_hlt_AK8PFHT900_TrimMass50,*b_hlt_AK8PFJet420_TrimMass30,*b_hlt_AK8PFJet550,*b_hlt_CaloJet500_NoJetID,*b_hlt_PFHT1050,*b_hlt_PFJet500;
   TBranch        *b_ntrigobjs;   //!
   TBranch        *b_trigobjpt;   //!
   TBranch        *b_trigobjeta;   //!
@@ -4527,8 +4536,8 @@ public :
 
   TString testdir = "/home/deroy/t3store3/CMSSW_10_5_0/src/BDTResponse_validator/Analysis/newvar_sv/Signal/";
   //TString dir = "/home/deroy/t3store3/Muon_MuEl/";
-  //TString dir = "/home/rsaxena/t3store3/Muon_MuEl/";
-  TString dir = "/home/ritik/Desktop/code2/";
+  TString dir = "/home/rsaxena/t3store3/Muon_MuEl/";
+	//TString dir = "/home/ritik/Desktop/code2/";
   //TString weightfile1 = testdir + TString("TMVAClassification_BDTG_elIDvarv3.weights.xml");
 
   //TString weightfile1 = dir + TString("TMVAClassification_BDTG_elIDvar_Jan2021Corr_TTbarUL18.weights.xml");
@@ -4578,7 +4587,7 @@ public :
   TH1F *h_pileup_data_minus = (TH1F*)file_pu_ratio->Get("pileup_minus_weight");
 
   BTagCalibration calib_deepcsv, calib_deepflav;
-  BTagCalibrationReader reader_deepcsv, reader_deepflav_loose,reader_deepflav_med;
+  BTagCalibrationReader reader_deepcsv, reader_deepflav_loose,reader_deepflav_med,reader_deepflav_tight;
   //float ptcut = 200; //Need to ask Suman how ptcut of ljet is then set if it is not declared here
 
   Trigg_eff_cal(TTree * /*tree*/ =0) : fChain(0) { }
@@ -4679,6 +4688,67 @@ void Trigg_eff_cal::Init(TTree *tree)
   fChain->SetBranchAddress("hlt_PFMET300",&hlt_PFMET300, &b_hlt_PFMET300);
   fChain->SetBranchAddress("hlt_PFMET200",&hlt_PFMET200, &b_hlt_PFMET200);
   fChain->SetBranchAddress("hlt_PFMET200_TypeOne",&hlt_PFMET200_TypeOne, &b_hlt_PFMET200_TypeOne);
+  fChain->SetBranchAddress("hlt_AK8PFHT800_TrimMass50",&hlt_AK8PFHT800_TrimMass50, &b_hlt_AK8PFHT800_TrimMass50);
+  fChain->SetBranchAddress("hlt_AK8PFHT900_TrimMass50",&hlt_AK8PFHT900_TrimMass50, &b_hlt_AK8PFHT900_TrimMass50);
+  fChain->SetBranchAddress("hlt_AK8PFJet420_TrimMass30",&hlt_AK8PFJet420_TrimMass30, &b_hlt_AK8PFJet420_TrimMass30);
+  fChain->SetBranchAddress("hlt_AK8PFJet550",&hlt_AK8PFJet550, &b_hlt_AK8PFJet550);
+  fChain->SetBranchAddress("hlt_CaloJet500_NoJetID",&hlt_CaloJet500_NoJetID, &b_hlt_CaloJet500_NoJetID);
+  fChain->SetBranchAddress("hlt_PFHT1050",&hlt_PFHT1050, &b_hlt_PFHT1050);
+  fChain->SetBranchAddress("hlt_PFJet500",&hlt_PFJet500, &b_hlt_PFJet500);
+  fChain->SetBranchAddress("hlt_AK8PFJet320",&hlt_AK8PFJet320, &b_hlt_AK8PFJet320);
+  fChain->SetBranchAddress("hlt_AK8PFJet330_PFAK8BTagDeepCSV",&hlt_AK8PFJet330_PFAK8BTagDeepCSV, &b_hlt_AK8PFJet330_PFAK8BTagDeepCSV);
+  fChain->SetBranchAddress("hlt_AK8PFJet360_TrimMass30",&hlt_AK8PFJet360_TrimMass30, &b_hlt_AK8PFJet360_TrimMass30);
+  fChain->SetBranchAddress("hlt_DiPFJetAve400",&hlt_DiPFJetAve400, &b_hlt_DiPFJetAve400);
+  fChain->SetBranchAddress("hlt_PFJet400",&hlt_PFJet400, &b_hlt_PFJet400);
+  fChain->SetBranchAddress("hlt_PFJet320",&hlt_PFJet320, &b_hlt_PFJet320);
+  fChain->SetBranchAddress("hlt_PFJet200",&hlt_PFJet200, &b_hlt_PFJet200);
+  fChain->SetBranchAddress("hlt_CaloMET100_HBHECleaned",&hlt_CaloMET100_HBHECleaned, &b_hlt_CaloMET100_HBHECleaned);
+  fChain->SetBranchAddress("hlt_CaloMET250_HBHECleaned",&hlt_CaloMET250_HBHECleaned, &b_hlt_CaloMET250_HBHECleaned);
+  fChain->SetBranchAddress("hlt_CaloMET90_HBHECleaned",&hlt_CaloMET90_HBHECleaned, &b_hlt_CaloMET90_HBHECleaned);
+  fChain->SetBranchAddress("hlt_CaloMET70_HBHECleaned",&hlt_CaloMET70_HBHECleaned, &b_hlt_CaloMET70_HBHECleaned);
+  fChain->SetBranchAddress("hlt_PFMETTypeOne140_PFMHT140_IDTight",&hlt_PFMETTypeOne140_PFMHT140_IDTight, &b_hlt_PFMETTypeOne140_PFMHT140_IDTight);
+  fChain->SetBranchAddress("hlt_PFMETTypeOne120_PFMHT120_IDTight",&hlt_PFMETTypeOne120_PFMHT120_IDTight, &b_hlt_PFMETTypeOne120_PFMHT120_IDTight);
+  fChain->SetBranchAddress("hlt_CaloMET80_HBHECleaned",&hlt_CaloMET80_HBHECleaned, &b_hlt_CaloMET80_HBHECleaned);
+
+  fChain->SetBranchAddress("psfactor_hlt_IsoMu24",&psfactor_hlt_IsoMu24, &b_psfactor_hlt_IsoMu24);
+  fChain->SetBranchAddress("psfactor_hlt_Mu50",&psfactor_hlt_Mu50, &b_psfactor_hlt_Mu50);
+  fChain->SetBranchAddress("psfactor_hlt_Ele50_PFJet165",&psfactor_hlt_Ele50_PFJet165, &b_psfactor_hlt_Ele50_PFJet165);
+  fChain->SetBranchAddress("psfactor_hlt_Ele115",&psfactor_hlt_Ele115, &b_psfactor_hlt_Ele115);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet500",&psfactor_hlt_AK8PFJet500, &b_psfactor_hlt_AK8PFJet500);
+  fChain->SetBranchAddress("psfactor_hlt_Photon200",&psfactor_hlt_Photon200, &b_psfactor_hlt_Photon200);
+  fChain->SetBranchAddress("psfactor_hlt_Mu37Ele27",&psfactor_hlt_Mu37Ele27, &b_psfactor_hlt_Mu37Ele27);
+  fChain->SetBranchAddress("psfactor_hlt_Mu27Ele37",&psfactor_hlt_Mu27Ele37, &b_psfactor_hlt_Mu27Ele37);
+  fChain->SetBranchAddress("psfactor_hlt_Mu37TkMu27",&psfactor_hlt_Mu37TkMu27, &b_psfactor_hlt_Mu37TkMu27);
+  fChain->SetBranchAddress("psfactor_hlt_OldMu100",&psfactor_hlt_OldMu100, &b_psfactor_hlt_OldMu100);
+  fChain->SetBranchAddress("psfactor_hlt_TkMu100",&psfactor_hlt_TkMu100, &b_psfactor_hlt_TkMu100);
+  fChain->SetBranchAddress("psfactor_hlt_DoubleEle25",&psfactor_hlt_DoubleEle25, &b_psfactor_hlt_DoubleEle25);
+  fChain->SetBranchAddress("psfactor_hlt_PFMET250",&psfactor_hlt_PFMET250, &b_psfactor_hlt_PFMET250);
+  fChain->SetBranchAddress("psfactor_hlt_PFMET300",&psfactor_hlt_PFMET300, &b_psfactor_hlt_PFMET300);
+  fChain->SetBranchAddress("psfactor_hlt_PFMET200",&psfactor_hlt_PFMET200, &b_psfactor_hlt_PFMET200);
+  fChain->SetBranchAddress("psfactor_hlt_PFMET200_TypeOne",&psfactor_hlt_PFMET200_TypeOne, &b_psfactor_hlt_PFMET200_TypeOne);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFHT800_TrimMass50",&psfactor_hlt_AK8PFHT800_TrimMass50, &b_psfactor_hlt_AK8PFHT800_TrimMass50);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFHT900_TrimMass50",&psfactor_hlt_AK8PFHT900_TrimMass50, &b_psfactor_hlt_AK8PFHT900_TrimMass50);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet400_TrimMass30",&psfactor_hlt_AK8PFJet400_TrimMass30, &b_psfactor_hlt_AK8PFJet400_TrimMass30);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet420_TrimMass30",&psfactor_hlt_AK8PFJet420_TrimMass30, &b_psfactor_hlt_AK8PFJet420_TrimMass30);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet550",&psfactor_hlt_AK8PFJet550, &b_psfactor_hlt_AK8PFJet550);
+  fChain->SetBranchAddress("psfactor_hlt_CaloJet500_NoJetID",&psfactor_hlt_CaloJet500_NoJetID, &b_psfactor_hlt_CaloJet500_NoJetID);
+  fChain->SetBranchAddress("psfactor_hlt_PFHT1050",&psfactor_hlt_PFHT1050, &b_psfactor_hlt_PFHT1050);
+  fChain->SetBranchAddress("psfactor_hlt_PFJet500",&psfactor_hlt_PFJet500, &b_psfactor_hlt_PFJet500);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet320",&psfactor_hlt_AK8PFJet320, &b_psfactor_hlt_AK8PFJet320);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV",&psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV, &b_psfactor_hlt_AK8PFJet330_PFAK8BTagDeepCSV);
+  fChain->SetBranchAddress("psfactor_hlt_AK8PFJet360_TrimMass30",&psfactor_hlt_AK8PFJet360_TrimMass30, &b_psfactor_hlt_AK8PFJet360_TrimMass30);
+  fChain->SetBranchAddress("psfactor_hlt_DiPFJetAve400",&psfactor_hlt_DiPFJetAve400, &b_psfactor_hlt_DiPFJetAve400);
+  fChain->SetBranchAddress("psfactor_hlt_PFJet400",&psfactor_hlt_PFJet400, &b_psfactor_hlt_PFJet400);
+  fChain->SetBranchAddress("psfactor_hlt_PFJet320",&psfactor_hlt_PFJet320, &b_psfactor_hlt_PFJet320);
+  fChain->SetBranchAddress("psfactor_hlt_PFJet200",&psfactor_hlt_PFJet200, &b_psfactor_hlt_PFJet200);
+  fChain->SetBranchAddress("psfactor_hlt_CaloMET100_HBHECleaned",&psfactor_hlt_CaloMET100_HBHECleaned, &b_psfactor_hlt_CaloMET100_HBHECleaned);
+  fChain->SetBranchAddress("psfactor_hlt_CaloMET250_HBHECleaned",&psfactor_hlt_CaloMET250_HBHECleaned, &b_psfactor_hlt_CaloMET250_HBHECleaned);
+  fChain->SetBranchAddress("psfactor_hlt_CaloMET90_HBHECleaned",&psfactor_hlt_CaloMET90_HBHECleaned, &b_psfactor_hlt_CaloMET90_HBHECleaned);
+  fChain->SetBranchAddress("psfactor_hlt_CaloMET70_HBHECleaned",&psfactor_hlt_CaloMET70_HBHECleaned, &b_psfactor_hlt_CaloMET70_HBHECleaned);
+  fChain->SetBranchAddress("psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight",&psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight, &b_psfactor_hlt_PFMETTypeOne140_PFMHT140_IDTight);
+  fChain->SetBranchAddress("psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight",&psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight, &b_psfactor_hlt_PFMETTypeOne120_PFMHT120_IDTight);
+  fChain->SetBranchAddress("psfactor_hlt_CaloMET80_HBHECleaned",&psfactor_hlt_CaloMET80_HBHECleaned, &b_psfactor_hlt_CaloMET80_HBHECleaned);
+
   fChain->SetBranchAddress("ntrigobjs", &ntrigobjs, &b_ntrigobjs);
   fChain->SetBranchAddress("trigobjpt", trigobjpt, &b_trigobjpt);
   fChain->SetBranchAddress("trigobjeta", trigobjeta, &b_trigobjeta);
